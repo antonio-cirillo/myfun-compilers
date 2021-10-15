@@ -3,7 +3,7 @@ int main() {
     double b;
 
     if a then
-        b <- 1;
+        b <-- 172.35E+b;
     else if a >= 3 then
         b <-- 10.4;
 }

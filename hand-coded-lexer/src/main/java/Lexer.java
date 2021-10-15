@@ -151,7 +151,7 @@ public class Lexer {
                         lessema += (char) c;
                         state = 18;
                     } else
-                        state = 22;
+                        state = 21;
                     break;
 
                 case 16:
@@ -160,7 +160,8 @@ public class Lexer {
                     if (Character.isDigit((char) c)) {
                         lessema += (char) c;
                         state = 17;
-                    }
+                    } else
+                        state = 22;
                     break;
 
                 case 17:
@@ -172,7 +173,7 @@ public class Lexer {
                         lessema += (char) c;
                         state = 18;
                     } else
-                        state = 23;
+                        state = 21;
                     break;
 
                 case 18:
@@ -184,7 +185,8 @@ public class Lexer {
                     } else if (c == 43 || c == 45) { // + o -
                         lessema += (char) c;
                         state = 19;
-                    }
+                    } else
+                        state = 22;
                     break;
 
                 case 19:
@@ -193,7 +195,8 @@ public class Lexer {
                     if (Character.isDigit((char) c)) {
                         lessema += (char) c;
                         state = 20;
-                    }
+                    } else
+                        state = 23;
                     break;
 
                 case 20:
@@ -206,11 +209,20 @@ public class Lexer {
                     break;
 
                 case 21:
+                    retract();
+                    return new Token("number", lessema);
 
                 case 22:
+                    retract();
+                    retract();
+                    lessema = lessema.substring(0, lessema.length() - 1);
+                    return new Token("number", lessema);
 
                 case 23:
                     retract();
+                    retract();
+                    retract();
+                    lessema = lessema.substring(0, lessema.length() - 2);
                     return new Token("number", lessema);
 
             /* Istruzioni di controllo sui separatori (Tab, New Line, Return) */
@@ -275,9 +287,16 @@ public class Lexer {
 
                 case 34:
                     if(c == -1)
-                        return null;
+                        state = 35;
                     else
-                        throw new Exception("Invalid syntax");
+                        state = 36;
+                    break;
+
+                case 35:
+                    return null;
+
+                case 36:
+                    throw new Exception("Invalid syntax: " + (char) c);
 
             }
 
