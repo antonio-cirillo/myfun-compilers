@@ -1,0 +1,9 @@
+int main() {
+    int a <-- 1;
+    double b;
+
+    if a then
+        b <-- 172.35E+b;
+    else if a >= 3 then
+        b <-- 10.4;
+}
