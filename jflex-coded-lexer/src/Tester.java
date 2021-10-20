@@ -1,7 +1,6 @@
 import java_cup.runtime.Symbol;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -17,7 +16,7 @@ public class Tester {
             "ID", "NUMBER", "SEPARATOR"};
 
         Symbol s;
-        while((s = lexer.next_token()).sym != Sym.EOF)
+        while((s = lexer.next_token()).sym != Token.EOF)
             if(s.value == null)
                 System.out.println(ID[s.sym - 1]);
             else

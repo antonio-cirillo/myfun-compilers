@@ -1,4 +1,4 @@
-public class Sym {
+public class Token {
 
     public static final int EOF = 0;
     public static final int IF = 1;

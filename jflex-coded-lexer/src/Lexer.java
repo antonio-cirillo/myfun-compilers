@@ -712,7 +712,7 @@ class Lexer implements java_cup.runtime.Scanner {
         zzAtEOF = true;
             zzDoEOF();
               {
-                return symbol(Sym.EOF);
+                return symbol(Token.EOF);
               }
       }
       else {
@@ -728,57 +728,57 @@ class Lexer implements java_cup.runtime.Scanner {
             // fall through
           case 15: break;
           case 3:
-            { return symbol(Sym.SEPARATOR, yytext());
+            { return symbol(Token.SEPARATOR, yytext());
             }
             // fall through
           case 16: break;
           case 4:
-            { return symbol(Sym.NUMBER_LITERAL, yytext());
+            { return symbol(Token.NUMBER_LITERAL, yytext());
             }
             // fall through
           case 17: break;
           case 5:
-            { return symbol(Sym.RELOP, yytext());
+            { return symbol(Token.RELOP, yytext());
             }
             // fall through
           case 18: break;
           case 6:
-            { return symbol(Sym.IDENTIFIER, yytext());
+            { return symbol(Token.IDENTIFIER, yytext());
             }
             // fall through
           case 19: break;
           case 7:
-            { return symbol(Sym.IF);
+            { return symbol(Token.IF);
             }
             // fall through
           case 20: break;
           case 8:
-            { return symbol(Sym.ASSIGN);
+            { return symbol(Token.ASSIGN);
             }
             // fall through
           case 21: break;
           case 9:
-            { return symbol(Sym.INT);
+            { return symbol(Token.INT);
             }
             // fall through
           case 22: break;
           case 10:
-            { return symbol(Sym.ELSE);
+            { return symbol(Token.ELSE);
             }
             // fall through
           case 23: break;
           case 11:
-            { return symbol(Sym.THEN);
+            { return symbol(Token.THEN);
             }
             // fall through
           case 24: break;
           case 12:
-            { return symbol(Sym.FLOAT);
+            { return symbol(Token.FLOAT);
             }
             // fall through
           case 25: break;
           case 13:
-            { return symbol(Sym.WHILE);
+            { return symbol(Token.WHILE);
             }
             // fall through
           case 26: break;

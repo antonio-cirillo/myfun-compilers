@@ -8,7 +8,7 @@ import java_cup.runtime.*;
 %line                           // Viene abilitato il contatore di linee. Il valore è contenuto all'interno di yyline
 %column                         // Viene abilitato il contatore di colonne. Valore contenuto in yyycolumn
 %cup
-%cupsym Sym
+%cupsym Token
 
 RelOp = ( < ( = | > ) ? ) | ( > ( = ) ? ) | =
 Identifier = [A-Za-z][A-Za-z0-9]*
@@ -33,27 +33,27 @@ Separator = [(){},;]
 // Lexical rules
 
 /* keywords */
-<YYINITIAL> "if"                    { return symbol(Sym.IF); }
-<YYINITIAL> "then"                  { return symbol(Sym.THEN); }
-<YYINITIAL> "else"                  { return symbol(Sym.ELSE); }
-<YYINITIAL> "while"                 { return symbol(Sym.WHILE); }
-<YYINITIAL> "int"                   { return symbol(Sym.INT); }
-<YYINITIAL> "float"                 { return symbol(Sym.FLOAT); }
+<YYINITIAL> "if"                    { return symbol(Token.IF); }
+<YYINITIAL> "then"                  { return symbol(Token.THEN); }
+<YYINITIAL> "else"                  { return symbol(Token.ELSE); }
+<YYINITIAL> "while"                 { return symbol(Token.WHILE); }
+<YYINITIAL> "int"                   { return symbol(Token.INT); }
+<YYINITIAL> "float"                 { return symbol(Token.FLOAT); }
 
 <YYINITIAL> {
 
     /* operators */
-    "<--"                           { return symbol(Sym.ASSIGN); }
-    {RelOp}                         { return symbol(Sym.RELOP, yytext()); }
+    "<--"                           { return symbol(Token.ASSIGN); }
+    {RelOp}                         { return symbol(Token.RELOP, yytext()); }
 
     /* identifier */
-    {Identifier}                    { return symbol(Sym.IDENTIFIER, yytext()); }
+    {Identifier}                    { return symbol(Token.IDENTIFIER, yytext()); }
 
     /* numbers */
-    {Number}                        { return symbol(Sym.NUMBER_LITERAL, yytext()); }
+    {Number}                        { return symbol(Token.NUMBER_LITERAL, yytext()); }
 
     /* Separator */
-    {Separator}                     { return symbol(Sym.SEPARATOR, yytext()); }
+    {Separator}                     { return symbol(Token.SEPARATOR, yytext()); }
 
     /* whitespace */
     {WhiteSpace}                    { /* no action */ }
@@ -61,4 +61,4 @@ Separator = [(){},;]
 
 /* error fallback */
 <YYINITIAL> [^]                     { throw new Error("Illegal character: " + yytext()); }
-<<EOF>>                             { return symbol(Sym.EOF); }
+<<EOF>>                             { return symbol(Token.EOF); }
