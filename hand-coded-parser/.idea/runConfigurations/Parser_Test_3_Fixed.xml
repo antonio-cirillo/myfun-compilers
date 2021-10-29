@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Parser Test 3 Fixed" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="Parser" />
+    <module name="hand-coded-parser" />
+    <option name="PROGRAM_PARAMETERS" value="file_source3_fixed.txt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
