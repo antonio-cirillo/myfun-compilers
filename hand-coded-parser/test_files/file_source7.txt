@@ -1,0 +1,35 @@
+if id<2.0.0 then
+        if y < id then
+            while id loop x <-- id end loop
+        else
+            x <-- 3
+        end if 
+else
+    prova <-- 3
+end if;
+
+while id loop
+       if prova < id then
+            while id loop x <-- id end loop
+       else
+            z <-- 12345671111111111111111111111111111111.0000000000000001 
+       end if
+end loop;
+
+if id < 2.0.0 then
+        if y < id then
+            while id loop x <-- id end loop
+        else
+            x <-- 3
+        end if 
+else
+    prova <-- 3
+end if;
+
+while id loop
+       if prova < id then
+            while id loop x <-- id end loop
+       else
+            z <-- 12345671111111111111111111111111111111.0000000000000001 
+       end if
+end loop;

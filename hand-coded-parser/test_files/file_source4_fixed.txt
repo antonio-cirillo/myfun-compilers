@@ -1,0 +1,16 @@
+if pippo<x then
+    id <-- y
+else
+    id <-- 3
+end if;
+if y < id then
+       while id loop x <-- id end loop
+else
+       x <-- 3
+end if;
+while id loop x <-- id end loop;
+if pippo<x then
+    id <--y
+else
+    id <-- 3
+end if

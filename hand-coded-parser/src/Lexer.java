@@ -4,24 +4,24 @@ import java.util.HashMap;
 public class Lexer {
 
     private RandomAccessFile rInput;
-    public static HashMap<String, Token> stringTable;
+    private static HashMap<String, Token> stringTable;
     private int state, current;
 
     public Lexer() {
         stringTable = new HashMap<>();
         state = 0;
         current = -1;
-        stringTable.put("if", new Token("IF"));
-        stringTable.put("then", new Token("THEN"));
-        stringTable.put("else", new Token("ELSE"));
-        stringTable.put("while", new Token("WHILE"));
-        stringTable.put("int", new Token("INT"));
-        stringTable.put("float", new Token("FLOAT"));
+        stringTable.put("if", new Token(Token.IF));
+        stringTable.put("then", new Token(Token.THEN));
+        stringTable.put("else", new Token(Token.ELSE));
+        stringTable.put("while", new Token(Token.WHILE));
+        stringTable.put("end", new Token(Token.END));
+        stringTable.put("loop", new Token(Token.LOOP));
     }
 
     public void initialize(String filePath) throws FileNotFoundException {
         File input = new File(
-                System.getProperty("user.dir") + "\\src\\main\\test_files\\" + filePath);
+                System.getProperty("user.dir") + "\\test_files\\" + filePath);
         rInput = new RandomAccessFile(input, "r");
     }
 
@@ -63,13 +63,14 @@ public class Lexer {
                     break;
 
                 case 2:
-                    return new Token("relop", "LE");
+                    return new Token(Token.RELOP, "LE");
 
                 case 3:
-                    return new Token("relop", "NE");
+                    return new Token(Token.RELOP, "NE");
 
                 case 4:
                     c = rInput.read();
+                    current++;
                     if (c == 45) // -
                         state = 5;
                     else
@@ -77,14 +78,14 @@ public class Lexer {
                     break;
 
                 case 5:
-                    return new Token("ASSIGN");
+                    return new Token(Token.ASSIGN);
 
                 case 6:
                     retract();
-                    return new Token("relop", "LT");
+                    return new Token(Token.RELOP, "LT");
 
                 case 7:
-                    return new Token("relop", "EQ");
+                    return new Token(Token.RELOP, "EQ");
 
                 case 8:
                     c = rInput.read();
@@ -100,13 +101,13 @@ public class Lexer {
                     break;
 
                 case 9:
-                    return new Token("relop", "GE");
+                    return new Token(Token.RELOP, "GE");
 
                 case 10:
                     retract();
-                    return new Token("relop", "GT");
+                    return new Token(Token.RELOP, "GT");
 
-            /* Istruzioni di controllo sugli identificatori */
+                /* Istruzioni di controllo sugli identificatori */
 
                 case 11:
                     if (Character.isLetter((char) c)) {
@@ -129,7 +130,7 @@ public class Lexer {
                     retract();
                     return installID(lessema);
 
-            /* Istruzione di controllo sui numeri */
+                /* Istruzione di controllo sui numeri */
 
                 case 14:
                     if (Character.isDigit((char) c)) {
@@ -210,22 +211,22 @@ public class Lexer {
 
                 case 21:
                     retract();
-                    return new Token("number", lessema);
+                    return new Token(Token.NUMBER, lessema);
 
                 case 22:
                     retract();
                     retract();
                     lessema = lessema.substring(0, lessema.length() - 1);
-                    return new Token("number", lessema);
+                    return new Token(Token.NUMBER, lessema);
 
                 case 23:
                     retract();
                     retract();
                     retract();
                     lessema = lessema.substring(0, lessema.length() - 2);
-                    return new Token("number", lessema);
+                    return new Token(Token.NUMBER, lessema);
 
-            /* Istruzioni di controllo sui separatori (Tab, New Line, Return) */
+                /* Istruzioni di controllo sui separatori (Tab, New Line, Return) */
 
                 case 24:
                     if (c == 9 || c == 10 || c == 13 || c == 32) // Separatori
@@ -248,54 +249,29 @@ public class Lexer {
                     state = 0; // Procedo con la lettura del prossimo token;
                     break;
 
-            /* Istruzioni di controllo sui sepatori ( ) { } ; , */
+                /* Istruzioni di controllo sui sepatori ( ) { } ; , */
 
                 case 27:
-                    if ((char) c == '(')
+                    if ((char) c == ';')
                         state = 28;
-                    else if ((char) c == ')')
-                        state = 29;
-                    else if ((char) c == '{')
-                        state = 30;
-                    else if ((char) c == '}')
-                        state = 31;
-                    else if ((char) c == ',')
-                        state = 32;
-                    else if ((char) c == ';')
-                        state = 33;
                     else
-                        state = 34;
+                        state = 29;
                     break;
 
                 case 28:
-                    return new Token("(");
+                    return new Token(Token.COMMA);
 
                 case 29:
-                    return new Token(")");
-
-                case 30:
-                    return new Token("{");
-
-                case 31:
-                    return new Token("}");
-
-                case 32:
-                    return new Token(",");
-
-                case 33:
-                    return new Token(";");
-
-                case 34:
                     if(c == -1)
-                        state = 35;
+                        state = 30;
                     else
-                        state = 36;
+                        state = 31;
                     break;
 
-                case 35:
-                    return null;
+                case 30:
+                    return new Token(Token.EOF);
 
-                case 36:
+                case 31:
                     throw new Exception("Invalid syntax: " + (char) c);
 
             }
@@ -310,7 +286,7 @@ public class Lexer {
         if (stringTable.containsKey(lessema))
             return stringTable.get(lessema);
         else {
-            token = new Token("ID", lessema);
+            token = new Token(Token.ID, lessema);
             stringTable.put(lessema, token);
             return token;
         }

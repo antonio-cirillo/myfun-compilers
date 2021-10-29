@@ -1,0 +1,11 @@
+if id < 2.0 then
+    while id loop
+        if y < id then
+            while id loop x <-- id end loop
+        else
+            x <-- 3
+        end if
+    end loop
+else
+    prova <-- 3
+end if

@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Java Test 3" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="Tester" />
-    <module name="di-pierno-cirillo_es1_hcl" />
+    <module name="hand-coded-lexer" />
     <option name="PROGRAM_PARAMETERS" value="terzo-test.txt" />
     <method v="2">
       <option name="Make" enabled="true" />

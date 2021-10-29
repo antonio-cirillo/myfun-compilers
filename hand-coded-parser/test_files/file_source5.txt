@@ -1,0 +1,4 @@
+while x > 3 then
+    x <-- id;
+else
+    x <-- 1;
