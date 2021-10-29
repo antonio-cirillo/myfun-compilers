@@ -70,6 +70,7 @@ public class Lexer {
 
                 case 4:
                     c = rInput.read();
+                    current++;
                     if (c == 45) // -
                         state = 5;
                     else
