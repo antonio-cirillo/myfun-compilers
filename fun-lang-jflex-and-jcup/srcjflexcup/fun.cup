@@ -1,0 +1,9 @@
+// java -jar C:\CUP\java-cup-11b.jar -destdir src srcjflexcup/fun.cup
+
+terminal IDENTIFIER, ASSIGN, NUMBEROP, STRINGOP, RELOP, BOOLOP,
+    INT_LITERAL, REAL_LITERAL, SEPARATOR, STRING_LITERAL,
+    PRINT, LPAR, RPAR, COMMA, SEMI;
+non terminal Program;
+
+Program ::= NUMBEROP {: RESULT = 0.0; :}
+;
