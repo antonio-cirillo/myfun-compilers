@@ -67,33 +67,60 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 
 // Lexical rules
 
+<YYINITIAL> "if"                        { return symbol(sym.IF); }
+<YYINITIAL> "then"                      { return symbol(sym.THEN); }
+<YYINITIAL> "else"                      { return symbol(sym.ELSE); }
+<YYINITIAL> "end"                       { return symbol(sym.END); }
+<YYINITIAL> "while"                     { return symbol(sym.WHILE); }
+<YYINITIAL> "loop"                      { return symbol(sym.LOOP); }
+<YYINITIAL> "fun"                       { return symbol(sym.FUN); }
+<YYINITIAL> "return"                    { return symbol(sym.RETURN); }
+<YYINITIAL> "var"                       { return symbol(sym.VAR); }
+<YYINITIAL> "true"                      { return symbol(sym.TRUE); }
+<YYINITIAL> "false"                     { return symbol(sym.FALSE); }
+
+<YYINITIAL> "int"                       { return symbol(sym.INT); }
+<YYINITIAL> "real"                      { return symbol(sym.REAL); }
+<YYINITIAL> "string"                    { return symbol(sym.STRING); }
+<YYINITIAL> "null"                      { return symbol(sym.NULL); }
+<YYINITIAL> "nil"                       { return symbol(sym.NULL); }
 <YYINITIAL> {
 
+      /* operations */
       "<-"                              { return symbol(sym.ASSIGN); }
       {NumberOp}                        { return symbol(sym.NUMBEROP, yytext()); }
       {StringOp}                        { return symbol(sym.STRINGOP, yytext()); }
       {RelOp}                           { return symbol(sym.RELOP, yytext()); }
       {BoolOp}                          { return symbol(sym.BOOLOP, yytext()); }
 
+      /* identifier */
       {Identifier}                      { return installID(yytext()); }
 
+      /* numbers */
       {IntLiteral}                      { return symbol(sym.INT_LITERAL, yytext()); }
       {RealLiteral}                     { return symbol(sym.REAL_LITERAL, yytext()); }
 
+      /* strings */
       \"                                { string.setLength(0); yybegin(STRING_DOUBLE_QUOTE); }
       '                                 { string.setLength(0); yybegin(STRING_SINGLE_QUOTE); }
 
+      /* print commands */
       {Print}                           { return symbol(sym.PRINT, yytext()); }
 
+      /* separators */
       "("                               { return symbol(sym.LPAR); }
       ")"                               { return symbol(sym.RPAR); }
       ","                               { return symbol(sym.COMMA); }
       ";"                               { return symbol(sym.SEMI); }
+      ":"                               { return symbol(sym.COLON); }
 
+      /* whitespace */
       {WhiteSpace}                      { /* no action */ }
 
+      /* comments */
       "#*"                              { yybegin(TRADITIONAL_COMMENT); }
       "//" | "#"                        { yybegin(ONE_LINE_COMMENT); }
+
 }
 
 <STRING_DOUBLE_QUOTE> {
@@ -109,6 +136,8 @@ WhiteSpace = {LineTerminator} | [ \t\f]
       \\r                               { string.append('\r'); }
       \\\"                              { string.append('\"'); }
       \\                                { string.append('\\'); }
+
+      <<EOF>>                           { throw new Error("Ci sta un errore!"); }
 
 }
 
@@ -127,6 +156,8 @@ WhiteSpace = {LineTerminator} | [ \t\f]
       \"                                { string.append('\"'); }
       \\                                { string.append('\\'); }
 
+    <<EOF>>                             { throw new Error("Ci sta un errore!"); }
+
 }
 
 <TRADITIONAL_COMMENT> {
@@ -134,14 +165,14 @@ WhiteSpace = {LineTerminator} | [ \t\f]
      #                                  { yybegin(YYINITIAL); }
      [^#]                               { /* no action */ }
 
-     <<EOF>>                            { throw new Error("IL COMMENTO DEVE ESSERE CHIUSO!"); }
+     <<EOF>>                            { throw new Error("Ci sta un errore!"); }
 
 }
 
 <ONE_LINE_COMMENT> {
 
     {LineTerminator}                    { yybegin(YYINITIAL); }
-    [^{LineTerminator}]                 { /* no action */ }
+    [^]                                 { /* no action */ }
 
 }
 
