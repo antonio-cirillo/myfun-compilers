@@ -1,3 +1,5 @@
 identifier = 2 # questo si chiama commento
 2.3141 <> identifier // questo è un altro commento
 ciao
+ciao # iafohgjaf
+ciao
