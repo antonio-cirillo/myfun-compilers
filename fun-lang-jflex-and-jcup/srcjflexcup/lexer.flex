@@ -16,12 +16,7 @@ Identifier = [$_@A-Za-z] [$_@A-Za-z0-9]*
 IntLiteral = [0-9]+ (e-?[0-9]+)? | 0x[0-9a-f] | 0b[01]+
 RealLiteral = [0-9]+ \. [0-9]+ (e-?[0-9]+)?
 
-NumberOp = \+ | - | \* | div | \^
-StringOp = &
-RelOp =  ( < ( > | = ) ? ) | ( > ( = ) ? ) | \!= | =
-BoolOp = not | and | or
-
-Print = \? ( \. | , | : )?
+Write = \? ( \. | , | : )?
 
 LineTerminator = \r\n|\r|\n
 WhiteSpace = {LineTerminator} | [ \t\f]
@@ -30,20 +25,6 @@ WhiteSpace = {LineTerminator} | [ \t\f]
     StringBuffer string = new StringBuffer();
 
     static final HashMap <String, Symbol> stringTable = new HashMap <> ();
-
-    private Symbol installID(String lessema) {
-
-        if(stringTable.containsKey(lessema)) {
-            return stringTable.get(lessema);
-        }
-
-        else {
-            Symbol s = symbol(sym.IDENTIFIER, lessema);
-            stringTable.put(lessema, s);
-            return s;
-        }
-
-    }
 
     private Symbol symbol(int type) {
       return new Symbol(type, yyline, yycolumn);
@@ -67,52 +48,76 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 
 // Lexical rules
 
+// MAIN, IF, THEN, ELSE, WHILE, LOOP, END
+<YYINITIAL> "main"                      { return symbol(sym.MAIN); }
 <YYINITIAL> "if"                        { return symbol(sym.IF); }
 <YYINITIAL> "then"                      { return symbol(sym.THEN); }
 <YYINITIAL> "else"                      { return symbol(sym.ELSE); }
-<YYINITIAL> "end"                       { return symbol(sym.END); }
 <YYINITIAL> "while"                     { return symbol(sym.WHILE); }
 <YYINITIAL> "loop"                      { return symbol(sym.LOOP); }
-<YYINITIAL> "fun"                       { return symbol(sym.FUN); }
-<YYINITIAL> "return"                    { return symbol(sym.RETURN); }
-<YYINITIAL> "var"                       { return symbol(sym.VAR); }
-<YYINITIAL> "true"                      { return symbol(sym.TRUE); }
-<YYINITIAL> "false"                     { return symbol(sym.FALSE); }
+<YYINITIAL> "end"                       { return symbol(sym.END); }
 
-<YYINITIAL> "int"                       { return symbol(sym.INT); }
+// VAR, INTEGER, REAL, STRING, BOOL
+<YYINITIAL> "var"                       { return symbol(sym.VAR); }
+<YYINITIAL> "integer"                   { return symbol(sym.INTEGER); }
 <YYINITIAL> "real"                      { return symbol(sym.REAL); }
 <YYINITIAL> "string"                    { return symbol(sym.STRING); }
+<YYINITIAL> "bool"                      { return symbol(sym.BOOL); }
+
+// ASSIGN, PLUS, MINUS, TIMES, DIVINT, DIV, POW
+<YYINITIAL> "+"                         { return symbol(sym.PLUS); }
+<YYINITIAL> "-"                         { return symbol(sym.MINUS); }
+<YYINITIAL> "*"                         { return symbol(sym.TIMES); }
+<YYINITIAL> "div"                       { return symbol(sym.DIVINT); }
+<YYINITIAL> "/"                         { return symbol(sym.DIV); }
+<YYINITIAL> "^"                         { return symbol(sym.POW); }
+
+// STR_CONCAT, EQ, NE, LT, LE, GT, GE, AND, OR, NOT
+<YYINITIAL> "&"                         { return symbol(sym.STR_CONCAT); }
+<YYINITIAL> "="                         { return symbol(sym.EQ); }
+<YYINITIAL> "<"                         { return symbol(sym.LT); }
+<YYINITIAL> "<="                        { return symbol(sym.LE); }
+<YYINITIAL> "<>" | "!="                 { return symbol(sym.NE); }
+<YYINITIAL> "<-"                        { return symbol(sym.ASSIGN); }
+<YYINITIAL> ">"                         { return symbol(sym.GT); }
+<YYINITIAL> ">="                        { return symbol(sym.GE); }
+<YYINITIAL> "and"                       { return symbol(sym.AND); }
+<YYINITIAL> "or"                        { return symbol(sym.OR); }
+<YYINITIAL> "not"                       { return symbol(sym.NOT); }
+
+// FUN, RETURN
+<YYINITIAL> "fun"                       { return symbol(sym.FUN); }
+<YYINITIAL> "out"                       { return symbol(sym.OUT); }
+<YYINITIAL> "return"                    { return symbol(sym.RETURN); }
+
+// TRUE, FALSE, NULL
+<YYINITIAL> "true"                      { return symbol(sym.TRUE); }
+<YYINITIAL> "false"                     { return symbol(sym.FALSE); }
 <YYINITIAL> "null"                      { return symbol(sym.NULL); }
-<YYINITIAL> "nil"                       { return symbol(sym.NULL); }
+
 <YYINITIAL> {
 
-      /* operations */
-      "<-"                              { return symbol(sym.ASSIGN); }
-      {NumberOp}                        { return symbol(sym.NUMBEROP, yytext()); }
-      {StringOp}                        { return symbol(sym.STRINGOP, yytext()); }
-      {RelOp}                           { return symbol(sym.RELOP, yytext()); }
-      {BoolOp}                          { return symbol(sym.BOOLOP, yytext()); }
-
       /* identifier */
-      {Identifier}                      { return installID(yytext()); }
+      {Identifier}                      { return symbol(sym.ID, yytext()); }
 
       /* numbers */
-      {IntLiteral}                      { return symbol(sym.INT_LITERAL, yytext()); }
-      {RealLiteral}                     { return symbol(sym.REAL_LITERAL, yytext()); }
+      {IntLiteral}                      { return symbol(sym.INTEGER_CONST, yytext()); }
+      {RealLiteral}                     { return symbol(sym.REAL_CONST, yytext()); }
 
       /* strings */
       \"                                { string.setLength(0); yybegin(STRING_DOUBLE_QUOTE); }
       '                                 { string.setLength(0); yybegin(STRING_SINGLE_QUOTE); }
 
       /* print commands */
-      {Print}                           { return symbol(sym.PRINT, yytext()); }
+      {Write}                           { return symbol(sym.WRITE, yytext()); }
+      "%"                               { return symbol(sym.READ, yytext()); }
 
       /* separators */
       "("                               { return symbol(sym.LPAR); }
       ")"                               { return symbol(sym.RPAR); }
+      ":"                               { return symbol(sym.COLON); }
       ","                               { return symbol(sym.COMMA); }
       ";"                               { return symbol(sym.SEMI); }
-      ":"                               { return symbol(sym.COLON); }
 
       /* whitespace */
       {WhiteSpace}                      { /* no action */ }
@@ -126,7 +131,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 <STRING_DOUBLE_QUOTE> {
 
       \"                                { yybegin(YYINITIAL);
-                                          return symbol(sym.STRING_LITERAL,
+                                          return symbol(sym.STRING_CONST,
                                           string.toString()); }
 
       [^\n\r\"\\]+                      { string.append(yytext()); }
@@ -144,7 +149,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 <STRING_SINGLE_QUOTE> {
 
       '                                 { yybegin(YYINITIAL);
-                                          return symbol(sym.STRING_LITERAL,
+                                          return symbol(sym.STRING_CONST,
                                           string.toString()); }
 
       [^\n\r'\"\\]+                     { string.append(yytext()); }

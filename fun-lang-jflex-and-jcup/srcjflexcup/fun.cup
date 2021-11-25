@@ -1,11 +1,169 @@
 // java -jar C:\CUP\java-cup-11b.jar -destdir src srcjflexcup/fun.cup
 
-terminal IF, THEN, ELSE, END, WHILE, LOOP, FUN, RETURN,
-    INT, REAL, STRING, VAR, NULL, TRUE, FALSE,
-    IDENTIFIER, ASSIGN, NUMBEROP, STRINGOP, RELOP, BOOLOP,
-    INT_LITERAL, REAL_LITERAL, SEPARATOR, STRING_LITERAL,
-    PRINT, LPAR, RPAR, COMMA, SEMI, COLON;
-non terminal Program;
+terminal MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
+    ID, VAR, INTEGER, REAL, STRING, BOOL,
+    FUN, LPAR, OUT, RPAR, COMMA, RETURN, COLON, SEMI,
+    ASSIGN, PLUS, MINUS, TIMES, DIVINT, DIV, POW,
+    STR_CONCAT, EQ, NE, LT, LE, GT, GE, AND, OR, NOT,
+    TRUE, FALSE, NULL,
+    INTEGER_CONST, REAL_CONST, STRING_CONST, BOOL_CONST,
+    WRITE, READ;
 
-Program ::= NUMBEROP {: RESULT = 0.0; :}
+terminal UMINUS, ASSOC;
+
+non terminal Program;
+non terminal VarDeclList, FunList, Main;
+non terminal VarDecl, Type, IdListInit, IdListInitObbl, Const;
+non terminal Fun, ParamDeclList, NonEmptyParamDeclList, ParamDecl, IdList;
+non terminal StatList, Stat, IfStat, Else, WhileStat, ReadStat, WriteStat, AssignStat, CallFun, ReturnStat;
+non terminal ExprList, Expr;
+
+/* Precedenze */
+precedence left OR;
+precedence left AND;
+precedence right NOT;
+precedence nonassoc EQ, NE, LT, LE, GT, GE;
+precedence left STR_CONCAT;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, DIVINT;
+precedence left POW;
+precedence left UMINUS;
+precedence left ASSOC;
+
+Program                 ::= VarDeclList FunList Main
+;
+
+VarDeclList             ::= /* empty */
+                        |   VarDecl VarDeclList
+;
+
+Main                    ::= MAIN VarDeclList StatList END MAIN SEMI
+;
+
+FunList                 ::= Fun FunList
+                        |   /* empty */
+;
+
+VarDecl                 ::= Type IdListInit SEMI
+                        |   VAR IdListInitObbl SEMI
+;
+
+Type                    ::= INTEGER
+                        |   REAL
+                        |   STRING
+                        |   BOOL
+;
+
+IdListInit              ::= ID
+                        |   IdListInit COMMA ID
+                        |   ID ASSIGN Expr
+                        |   IdListInit COMMA ID ASSIGN Expr
+;
+
+IdListInitObbl          ::= ID ASSIGN Const
+                        |   IdListInitObbl COMMA ID ASSIGN Const
+;
+
+Const                   ::= INTEGER_CONST
+                        | REAL_CONST
+                        | STRING_CONST
+                        | BOOL_CONST
+;
+
+Fun                     ::= FUN ID LPAR ParamDeclList RPAR COLON Type
+                            VarDeclList StatList END FUN SEMI
+                        |   FUN ID LPAR ParamDeclList RPAR
+                            VarDeclList StatList END FUN SEMI
+;
+
+ParamDeclList           ::= NonEmptyParamDeclList
+                        |   /* empty */
+;
+
+NonEmptyParamDeclList    ::= ParamDecl
+                        | NonEmptyParamDeclList COMMA ParamDecl
+;
+
+ParamDecl               ::= Type ID
+                        |   OUT Type ID
+;
+
+StatList                ::= Stat SEMI
+                        |   Stat SEMI StatList
+;
+
+Stat                    ::= IfStat
+                        |   WhileStat
+                        |   ReadStat
+                        |   WriteStat
+                        |   AssignStat
+                        |   CallFun
+                        |   ReturnStat
+                        |   /* empty */
+;
+
+IfStat                  ::= IF Expr THEN VarDeclList StatList Else END IF
+;
+
+Else                    ::= ELSE VarDeclList StatList
+                        |   /* empty */
+;
+
+WhileStat               ::= WHILE Expr LOOP VarDeclList StatList END LOOP
+;
+
+
+ReadStat                ::= READ IdList Expr
+                        |   READ IdList
+;
+
+
+IdList                  ::= ID
+                        | IdList COMMA ID
+;
+
+WriteStat               ::= WRITE Expr
+;
+
+AssignStat              ::= ID ASSIGN Expr
+;
+
+CallFun                 ::= ID LPAR ExprList RPAR
+                        | ID LPAR RPAR
+;
+
+ReturnStat              ::= RETURN Expr
+;
+
+ExprList                ::= Expr
+                        |   ExprList COMMA Expr
+;
+
+Expr                    ::= TRUE
+                        |   FALSE
+                        |   INTEGER_CONST
+                        |   REAL_CONST
+                        |   STRING_CONST
+                        |   ID
+                        |   CallFun
+                        |   Expr PLUS Expr
+                        |   Expr MINUS Expr
+                        |   Expr TIMES Expr
+                        |   Expr DIVINT Expr
+                        |   Expr DIV Expr
+                        |   Expr POW Expr
+                        |   Expr STR_CONCAT Expr
+                        |   Expr EQ Expr
+                        |   Expr LT Expr
+                        |   Expr LE Expr
+                        |   Expr NE Expr
+                        |   Expr GT Expr
+                        |   Expr GE Expr
+                        |   Expr AND Expr
+                        |   Expr OR Expr
+                        |   NOT Expr
+                        |   MINUS Expr
+                            %prec UMINUS
+                        |   LPAR Expr RPAR
+                            %prec ASSOC
 ;
