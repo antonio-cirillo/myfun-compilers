@@ -76,22 +76,7 @@ main
             ?. x & " div " & y & " = " & divisione(x, y);
             % input "Scegli un'altra operazione";
         end if;
-        end if;
-        end if;
-        end if;
-        end if;
-        end if;
 
-
-
-
-
-        end loop;
-
-
-
-
-
-
+    end loop;
 
 end main;
