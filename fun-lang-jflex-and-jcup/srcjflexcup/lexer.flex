@@ -26,6 +26,20 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 
     static final HashMap <String, Symbol> stringTable = new HashMap <> ();
 
+    private Symbol installID(String lessema) {
+
+        if(stringTable.containsKey(lessema)) {
+            return symbol(sym.ID, lessema);
+        }
+
+        else {
+            Symbol s = symbol(sym.ID, lessema);
+            stringTable.put(lessema, s);
+            return s;
+        }
+
+    }
+
     private Symbol symbol(int type) {
       return new Symbol(type, yyline, yycolumn);
     }
@@ -91,14 +105,16 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 <YYINITIAL> "return"                    { return symbol(sym.RETURN); }
 
 // TRUE, FALSE, NULL
-<YYINITIAL> "true"                      { return symbol(sym.TRUE); }
-<YYINITIAL> "false"                     { return symbol(sym.FALSE); }
-<YYINITIAL> "null"                      { return symbol(sym.NULL); }
+<YYINITIAL> "true"                      { return symbol(sym.BOOL_CONST, yytext()); }
+<YYINITIAL> "false"                     { return symbol(sym.BOOL_CONST, yytext()); }
+
+// NOT USED
+// <YYINITIAL> "null"                      { return symbol(sym.NULL); }
 
 <YYINITIAL> {
 
       /* identifier */
-      {Identifier}                      { return symbol(sym.ID, yytext()); }
+      {Identifier}                      { return installID(yytext()); }
 
       /* numbers */
       {IntLiteral}                      { return symbol(sym.INTEGER_CONST, yytext()); }
