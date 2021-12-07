@@ -1,3 +1,6 @@
+import it.unisa.nodes.ProgramOp;
+import it.unisa.visitors.scoping.SemanticVisitor;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
@@ -11,6 +14,8 @@ public class Tester {
                 System.getProperty("user.dir") + "\\test_files\\" + args[0])));
 
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) p.parse().value;
+        SemanticVisitor semantic = new SemanticVisitor();
+        ((ProgramOp) root).accept(semantic);
         JTree tree = new JTree(root);
         JScrollPane scrollPane = new JScrollPane(tree);
         JFrame frame = new JFrame("Abstract Syntax Tree");

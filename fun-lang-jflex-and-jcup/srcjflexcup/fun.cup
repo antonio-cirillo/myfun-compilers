@@ -174,8 +174,8 @@ NonEmptyParamDeclList   ::= ParamDecl:param
                         |   NonEmptyParamDeclList:paramList COMMA ParamDecl:param
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(param);
                             RESULT.addAll(paramList);
+                            RESULT.add(param);
                         :}
 ;
 
