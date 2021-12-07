@@ -1,5 +1,10 @@
 // java -jar C:\CUP\java-cup-11b.jar -destdir src srcjflexcup/fun.cup
 
+import it.unisa.nodes.*;
+import it.unisa.nodes.expr.*;
+import it.unisa.nodes.stat.*;
+import it.unisa.nodes.var.*;
+
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,51 +22,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Enumeration;
 
-parser code
-{:
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    Document doc = null;
-
-    private static void parseTreeNode(DefaultMutableTreeNode treeNode, Document doc) {
-
-        String value = (String) treeNode.getUserObject();
-        Element rootElement = doc.createElement(value);
-        doc.appendChild(rootElement);
-
-        Enumeration kiddies = treeNode.children();
-        while (kiddies.hasMoreElements()) {
-            DefaultMutableTreeNode child = (DefaultMutableTreeNode) kiddies.nextElement();
-            parseTreeNode(child, rootElement);
-        }
-
-    }
-
-    private static void parseTreeNode(DefaultMutableTreeNode treeNode, Element doc) {
-
-            String value = (String) treeNode.getUserObject();
-            Element parentElement = null;
-
-            if(treeNode.getChildCount() > 0)
-                parentElement = doc.getOwnerDocument().createElement(value);
-            else {
-                doc.appendChild(doc.getOwnerDocument().createTextNode(value));
-                return ;
-            }
-
-            doc.appendChild(parentElement);
-
-            Enumeration kiddies = treeNode.children();
-            while (kiddies.hasMoreElements()) {
-                DefaultMutableTreeNode  child = (DefaultMutableTreeNode) kiddies.nextElement();
-                parseTreeNode(child, parentElement);
-            }
-
-        }
-:}
-
 terminal String MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
     ID, VAR, INTEGER, REAL, STRING, BOOL,
-    FUN, LPAR, OUT, RPAR, COMMA, RETURN, COLON, SEMI,
+    FUN, LPAR, OUT, OUTPAR, RPAR, COMMA, RETURN, COLON, SEMI,
     ASSIGN, PLUS, MINUS, TIMES, DIVINT, DIV, POW,
     STR_CONCAT, EQ, NE, LT, LE, GT, GE, AND, OR, NOT,
     INTEGER_CONST, REAL_CONST, STRING_CONST, BOOL_CONST,
@@ -69,14 +32,22 @@ terminal String MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
 
 terminal UMINUS, ASSOC;
 
-non terminal DefaultMutableTreeNode Program, Main, VarDecl, Const;
-non terminal DefaultMutableTreeNode Fun, ParamDecl, Stat, IfStat, Else, WhileStat,
-    ReadStat, WriteStat, AssignStat, CallFun, ReturnStat, Expr;
-
+non terminal ProgramOp Program;
+non terminal BodyOp Main;
+non terminal VarDeclOp VarDecl;
+non terminal FunOp Fun;
+non terminal ParamDeclOp ParamDecl;
 non terminal String Type;
+non terminal Stat Stat, IfStat, Else, WhileStat, ReadStat, WriteStat, AssignStat, CallFunStat, ReturnStat;
+non terminal Expr CallFunExpr, Expr, Const;
 
-non terminal ArrayList <DefaultMutableTreeNode> VarDeclList, IdListInit, IdListInitObbl,
-    FunList, ParamDeclList, NonEmptyParamDeclList, StatList, IdList, ExprList;
+non terminal ArrayList <VarDeclOp> VarDeclList;
+non terminal ArrayList <DefaultMutableTreeNode> IdListInit, IdListInitObbl;
+non terminal ArrayList <ParamDeclOp> ParamDeclList, NonEmptyParamDeclList;
+non terminal ArrayList <FunOp> FunList;
+non terminal ArrayList <Stat> StatList;
+non terminal ArrayList <Value> IdList;
+non terminal ArrayList <Expr> ExprList;
 
 /* Precedenze */
 precedence left OR;
@@ -90,90 +61,38 @@ precedence left POW;
 precedence left UMINUS;
 precedence left ASSOC;
 
-Program                 ::=
-                        {:
-                            try {
-                                doc = factory.newDocumentBuilder().newDocument();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        :}
-                            VarDeclList:varList FunList:funList Main:main
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ProgramOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                RESULT.add(var);
-                            Collections.reverse(funList);
-                            for(DefaultMutableTreeNode fun: funList)
-                                RESULT.add(fun);
-                            RESULT.add(main);
-
-                            parseTreeNode((DefaultMutableTreeNode) RESULT.getRoot(), doc);
-                            Transformer tf = TransformerFactory.newInstance().newTransformer();
-                            tf.setOutputProperty(OutputKeys.INDENT, "yes");
-                            tf.setOutputProperty(OutputKeys.METHOD, "xml");
-                            tf.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-                            DOMSource domSource = new DOMSource(doc);
-                            StreamResult sr = new StreamResult(new File("TreeModel.xml"));
-                            tf.transform(domSource, sr);
-                        :}
+Program                 ::= VarDeclList:varDeclList FunList:funList Main:main
+                        {:  RESULT = new ProgramOp(varDeclList, funList, main); :}
 ;
 
 VarDeclList             ::= /* empty */
-                        {:
-                            RESULT = new ArrayList <> ();
-                        :}
+                        {:  RESULT = new ArrayList <> (); :}
                         |   VarDecl:var VarDeclList:varList
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.addAll(varList);
                             RESULT.add(var);
+                            RESULT.addAll(varList);
                         :}
 ;
 
-Main                    ::= MAIN VarDeclList:varList StatList:statList END MAIN SEMI
-                        {:
-                            RESULT = new DefaultMutableTreeNode("BodyOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                RESULT.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                RESULT.add(stat);
-                        :}
+Main                    ::= MAIN VarDeclList:varDeclList StatList:statList END MAIN SEMI
+                        {:  RESULT = new BodyOp(varDeclList, statList); :}
 ;
 
 FunList                 ::= Fun:fun FunList:funList
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.addAll(funList);
                             RESULT.add(fun);
+                            RESULT.addAll(funList);
                         :}
                         |   /* empty */
                         {:  RESULT = new ArrayList <> (); :}
 ;
 
-VarDecl                 ::= Type:t IdListInit:idList SEMI
-                        {:
-                            RESULT = new DefaultMutableTreeNode("VarDeclOp");
-                            DefaultMutableTreeNode TypeOp = new DefaultMutableTreeNode("TypeOp");
-                            TypeOp.add(new DefaultMutableTreeNode(t));
-                            Collections.reverse(idList);
-                            for(DefaultMutableTreeNode id: idList)
-                                RESULT.add(id);
-                        :}
+VarDecl                 ::= Type:type IdListInit:idList SEMI
+                        {:  RESULT = new VarDeclOp(type, idList); :}
                         |   VAR IdListInitObbl:idList SEMI
-                        {:
-                            RESULT = new DefaultMutableTreeNode("VarDeclOp");
-                            DefaultMutableTreeNode TypeOp = new DefaultMutableTreeNode("TypeOp");
-                            TypeOp.add(new DefaultMutableTreeNode("var"));
-                            RESULT.add(TypeOp);
-                            Collections.reverse(idList);
-                            for(DefaultMutableTreeNode id: idList)
-                                RESULT.add(id);
-                        :}
+                        {:  RESULT = new VarDeclOp("var", idList); :}
 ;
 
 Type                    ::= INTEGER
@@ -189,99 +108,56 @@ Type                    ::= INTEGER
 IdListInit              ::= ID:id
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
+                            RESULT.add(new Value("id", id));
                         :}
                         |   IdListInit:idList COMMA ID:id
                         {:
                             RESULT = new ArrayList <> ();
+                            RESULT.add(new Value("id", id));
                             RESULT.addAll(idList);
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
                         :}
                         |   ID:id ASSIGN Expr:e
                         {:
                             RESULT = new ArrayList <> ();
-                            DefaultMutableTreeNode IdInitOp = new DefaultMutableTreeNode("IdInitOp");
-                            IdInitOp.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            IdInitOp.add(e);
-                            RESULT.add(IdInitOp);
+                            RESULT.add(new IdInitOp(id, e));
                         :}
                         |   IdListInit:idList COMMA ID:id ASSIGN Expr:e
                         {:
                             RESULT = new ArrayList <> ();
-                            DefaultMutableTreeNode IdInitOp = new DefaultMutableTreeNode("IdInitOp");
-                            IdInitOp.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            IdInitOp.add(e);
+                            RESULT.add(new IdInitOp(id, e));
                             RESULT.addAll(idList);
-                            RESULT.add(IdInitOp);
                         :}
 ;
 
 IdListInitObbl          ::= ID:id ASSIGN Const:c
                         {:
                             RESULT = new ArrayList <> ();
-                            DefaultMutableTreeNode IdInitOp = new DefaultMutableTreeNode("IdInitOp");
-                            IdInitOp.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            IdInitOp.add(c);
-                            RESULT.add(IdInitOp);
+                            RESULT.add(new IdInitOp(id, c));
                         :}
                         |   IdListInitObbl:idList COMMA ID:id ASSIGN Const:c
                         {:
                             RESULT = new ArrayList <> ();
-                            DefaultMutableTreeNode IdInitOp = new DefaultMutableTreeNode("IdInitOp");
-                            IdInitOp.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            IdInitOp.add(c);
+                            RESULT.add(new IdInitOp(id, c));
                             RESULT.addAll(idList);
-                            RESULT.add(IdInitOp);
                         :}
 ;
 
 Const                   ::= BOOL_CONST:b
-                        {:  RESULT = new DefaultMutableTreeNode("(bool_const, \"" + b + "\")"); :}
+                        {:  RESULT = new Value("bool_const", b); :}
                         |   INTEGER_CONST:i
-                        {:  RESULT = new DefaultMutableTreeNode("(integer_const, \"" + i + "\")"); :}
+                        {:  RESULT = new Value("integer_const", i); :}
                         |   REAL_CONST:r
-                        {:  RESULT = new DefaultMutableTreeNode("(real_const, \"" + r + "\")"); :}
+                        {:  RESULT = new Value("real_const", r); :}
                         |   STRING_CONST:s
-                        {:  RESULT = new DefaultMutableTreeNode("(string_const, \"" + s + "\")"); :}
+                        {:  RESULT = new Value("string_const", s); :}
 ;
 
-Fun                     ::= FUN ID:id LPAR ParamDeclList:paramList RPAR COLON Type:t
-                            VarDeclList:varList StatList:statList END FUN SEMI
-                        {:
-                            RESULT = new DefaultMutableTreeNode("FunOp");
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            Collections.reverse(paramList);
-                            for(DefaultMutableTreeNode param: paramList)
-                                RESULT.add(param);
-                            DefaultMutableTreeNode TypeOp = new DefaultMutableTreeNode("TypeOp");
-                            TypeOp.add(new DefaultMutableTreeNode(t));
-                            RESULT.add(TypeOp);
-                            DefaultMutableTreeNode BodyOp = new DefaultMutableTreeNode("BodyOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                BodyOp.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                BodyOp.add(stat);
-                            RESULT.add(BodyOp);
-                        :}
-                        |   FUN ID:id LPAR ParamDeclList:paramList RPAR
-                            VarDeclList:varList StatList:statList END FUN SEMI
-                        {:
-                            RESULT = new DefaultMutableTreeNode("FunOp");
-                               RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                               Collections.reverse(paramList);
-                               for(DefaultMutableTreeNode param: paramList)
-                                   RESULT.add(param);
-                               DefaultMutableTreeNode BodyOp = new DefaultMutableTreeNode("BodyOp");
-                               Collections.reverse(varList);
-                               for(DefaultMutableTreeNode var: varList)
-                                   BodyOp.add(var);
-                               Collections.reverse(statList);
-                               for(DefaultMutableTreeNode stat: statList)
-                                   BodyOp.add(stat);
-                               RESULT.add(BodyOp);
-                        :}
+Fun                     ::= FUN ID:id LPAR ParamDeclList:paramDeclList RPAR COLON Type:type
+                            VarDeclList:varDeclList StatList:statList END FUN SEMI
+                        {:  RESULT = new FunOp(id, paramDeclList, type, varDeclList, statList); :}
+                        |   FUN ID:id LPAR ParamDeclList:paramDeclList RPAR
+                            VarDeclList:varDeclList StatList:statList END FUN SEMI
+                        {:  RESULT = new FunOp(id, paramDeclList, varDeclList, statList); :}
 ;
 
 ParamDeclList           ::= NonEmptyParamDeclList:paramList
@@ -298,318 +174,177 @@ NonEmptyParamDeclList   ::= ParamDecl:param
                         |   NonEmptyParamDeclList:paramList COMMA ParamDecl:param
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.addAll(paramList);
                             RESULT.add(param);
+                            RESULT.addAll(paramList);
                         :}
 ;
 
-ParamDecl               ::= Type:t ID:id
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ParamDeclOp");
-                            DefaultMutableTreeNode ModeOp = new DefaultMutableTreeNode("ModeOp");
-                            ModeOp.add(new DefaultMutableTreeNode("in"));
-                            DefaultMutableTreeNode TypeOp = new DefaultMutableTreeNode("TypeOp");
-                            TypeOp.add(new DefaultMutableTreeNode(t));
-                            RESULT.add(ModeOp);
-                            RESULT.add(TypeOp);
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                        :}
-                        |   OUT Type:t ID:id
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ParamDeclOp");
-                            DefaultMutableTreeNode ModeOp = new DefaultMutableTreeNode("ModeOp");
-                            ModeOp.add(new DefaultMutableTreeNode("out"));
-                            DefaultMutableTreeNode TypeOp = new DefaultMutableTreeNode("TypeOp");
-                            TypeOp.add(new DefaultMutableTreeNode(t));
-                            RESULT.add(ModeOp);
-                            RESULT.add(TypeOp);
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                        :}
+ParamDecl               ::= Type:type ID:id
+                        {:  RESULT = new ParamDeclOp(type, id); :}
+                        |   OUT Type:type ID:id
+                        {:  RESULT = new ParamDeclOp("out", type, id); :}
 ;
 
-StatList                ::= Stat:s
+StatList                ::= Stat:stat SEMI
                         {:
                             RESULT = new ArrayList <> ();
-                            if(s != null) RESULT.add(s);
+                            RESULT.add(stat);
                         :}
-                        |   Stat:s StatList:sList
+                        |   Stat:stat SEMI StatList:statList
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.addAll(sList);
-                            if(s != null) RESULT.add(s);
+                            RESULT.add(stat);
+                            RESULT.addAll(statList);
                         :}
+                        |   /* empty */
+                        {:  RESULT = new ArrayList <> (); :}
 ;
 
-Stat                    ::= IfStat:ifStat SEMI
+Stat                    ::= IfStat:ifStat
                         {:  RESULT = ifStat; :}
-                        |   WhileStat:whileStat SEMI
+                        |   WhileStat:whileStat
                         {:  RESULT = whileStat; :}
-                        |   ReadStat:readStat SEMI
+                        |   ReadStat:readStat
                         {:  RESULT = readStat; :}
-                        |   WriteStat:writeStat SEMI
+                        |   WriteStat:writeStat
                         {:  RESULT = writeStat; :}
-                        |   AssignStat:assignStat SEMI
+                        |   AssignStat:assignStat
                         {:  RESULT = assignStat; :}
-                        |   CallFun:callFun SEMI
+                        |   CallFunStat:callFun
                         {:  RESULT = callFun; :}
-                        |   ReturnStat:returnStat SEMI
+                        |   ReturnStat:returnStat
                         {:  RESULT = returnStat; :}
+;
+
+IfStat                  ::= IF Expr:expr THEN VarDeclList:varDeclList StatList:statList Else:elseBody END IF
+                        {:  RESULT = new IfStatOp(expr, varDeclList, statList, elseBody); :}
+;
+
+Else                    ::= ELSE IF Expr:expr THEN VarDeclList:varDeclList StatList:statList Else:elseBody
+                        {:  RESULT = new IfStatOp(expr, varDeclList, statList, elseBody); :}
+                        |   ELSE VarDeclList:varDeclList StatList:statList
+                        {:  RESULT = new BodyOp(varDeclList, statList); :}
                         |   /* empty */
 ;
 
-IfStat                  ::= IF Expr:e THEN VarDeclList:varList StatList:statList Else:els END IF
-                        {:
-                            RESULT = new DefaultMutableTreeNode("IfStatOp");
-                            RESULT.add(e);
-                            DefaultMutableTreeNode BodyOp = new DefaultMutableTreeNode("BodyOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                BodyOp.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                BodyOp.add(stat);
-                            RESULT.add(BodyOp);
-                            if(els != null) RESULT.add(els);
-                        :}
+WhileStat               ::= WHILE Expr:expr LOOP VarDeclList:varDeclList StatList:statList END LOOP
+                        {:  RESULT = new WhileOp(expr, varDeclList, statList); :}
 ;
 
-Else                    ::= ELSE IF Expr:e THEN VarDeclList:varList StatList:statList Else:els
-                        {:
-                            RESULT = new DefaultMutableTreeNode("BodyOp");
-                            DefaultMutableTreeNode IfStatOp = new DefaultMutableTreeNode("IfStatOp");
-                            IfStatOp.add(e);
-                            DefaultMutableTreeNode BodyOp = new DefaultMutableTreeNode("BodyOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                BodyOp.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                BodyOp.add(stat);
-                            IfStatOp.add(BodyOp);
-                            if(els != null) IfStatOp.add(els);
-                            RESULT.add(IfStatOp);
-                        :}
-                        |   ELSE VarDeclList:varList StatList:statList
-                        {:
-                            RESULT = new DefaultMutableTreeNode("BodyOp");
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                RESULT.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                RESULT.add(stat);
-                        :}
-                        |   /* empty */
-;
-
-WhileStat               ::= WHILE Expr:e LOOP VarDeclList:varList StatList:statList END LOOP
-                        {:
-                            RESULT = new DefaultMutableTreeNode("WhileOp");
-                            RESULT.add(e);
-                            Collections.reverse(varList);
-                            for(DefaultMutableTreeNode var: varList)
-                                RESULT.add(var);
-                            Collections.reverse(statList);
-                            for(DefaultMutableTreeNode stat: statList)
-                                RESULT.add(stat);
-                        :}
-;
-
-ReadStat                ::= READ IdList:idList Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ReadOp");
-                            Collections.reverse(idList);
-                            for(DefaultMutableTreeNode id: idList)
-                                RESULT.add(id);
-                            RESULT.add(e);
-                        :}
+ReadStat                ::= READ IdList:idList Expr:expr
+                        {:  RESULT = new ReadOp(idList, expr); :}
                         |   READ IdList:idList
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ReadOp");
-                            Collections.reverse(idList);
-                            for(DefaultMutableTreeNode id: idList)
-                                RESULT.add(id);
-                        :}
+                        {:  RESULT = new ReadOp(idList); :}
 ;
 
 
 IdList                  ::= ID:id
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
+                            RESULT.add(new Value("id", id));
                         :}
                         |   IdList:idList COMMA ID:id
                         {:
                             RESULT = new ArrayList <> ();
+                            RESULT.add(new Value("id", id));
                             RESULT.addAll(idList);
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
                         :}
 ;
 
-WriteStat               ::= WRITE:w Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("WriteOp");
-                            RESULT.add(new DefaultMutableTreeNode(
-                                w.equals("?") ? "write" :
-                                w.equals("?.") ? "writeln" :
-                                w.equals("?,") ? "writeb" :
-                                "writet"
-                            ));
-                            RESULT.add(e);
-                        :}
+WriteStat               ::= WRITE:write Expr:expr
+                        {:  RESULT = new WriteOp(write, expr); :}
 ;
 
-AssignStat              ::= ID:id ASSIGN Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("AssignOp");
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            RESULT.add(e);
-                        :}
+AssignStat              ::= ID:id ASSIGN Expr:expr
+                        {:  RESULT = new AssignOp(id, expr); :}
 ;
 
-CallFun                 ::= ID:id LPAR ExprList:exprList RPAR
-                        {:
-                            RESULT = new DefaultMutableTreeNode("CallFunOp");
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                            DefaultMutableTreeNode ParamOp = new DefaultMutableTreeNode("ParamOp");
-                            Collections.reverse(exprList);
-                            for(DefaultMutableTreeNode e: exprList)
-                                ParamOp.add(e);
-                            if(exprList.size() > 0) RESULT.add(ParamOp);
-                        :}
-                        | ID:id LPAR RPAR
-                        {:
-                            RESULT = new DefaultMutableTreeNode("CallFunOp");
-                            RESULT.add(new DefaultMutableTreeNode("(id, \"" + id + "\")"));
-                        :}
+CallFunStat             ::= ID:id LPAR ExprList:exprList RPAR
+                        {:  RESULT = new CallFunOpStat(id, exprList); :}
+                        |   ID:id LPAR RPAR
+                        {:  RESULT = new CallFunOpStat(id); :}
 ;
 
-ReturnStat              ::= RETURN Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("ReturnOp");
-                            RESULT.add(e);
-                        :}
+CallFunExpr             ::= ID:id LPAR ExprList:exprList RPAR
+                        {:  RESULT = new CallFunOpExpr(id, exprList); :}
+                        |   ID:id LPAR RPAR
+                        {:  RESULT = new CallFunOpExpr(id); :}
 ;
 
-ExprList                ::= Expr:e
+ReturnStat              ::= RETURN Expr:expr
+                        {:  RESULT = new ReturnOp(expr); :}
+;
+
+ExprList                ::= Expr:expr
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(e);
+                            expr.setMode("in");
+                            RESULT.add(expr);
                         :}
-                        |   ExprList:expr COMMA Expr:e
+                        |   Expr:expr COMMA ExprList:exprList
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.addAll(expr);
-                            RESULT.add(e);
+                            expr.setMode("in");
+                            RESULT.add(expr);
+                            RESULT.addAll(exprList);
+                        :}
+                        |   OUTPAR ID:id
+                        {:
+                            RESULT = new ArrayList <> ();
+                            Value idValue = new Value("id", id);
+                            idValue.setMode("out");
+                            RESULT.add(idValue);
+                        :}
+                        |   OUTPAR ID:id COMMA ExprList:exprList
+                        {:
+                            RESULT = new ArrayList <> ();
+                            Value idValue = new Value("id", id);
+                            idValue.setMode("out");
+                            RESULT.add(idValue);
+                            RESULT.addAll(exprList);
                         :}
 ;
 
 Expr                    ::= Const:c
                         {:  RESULT = c; :}
                         |   ID:id
-                        {:  RESULT = new DefaultMutableTreeNode("(id, \"" + id + "\")"); :}
-                        |   CallFun:call
-                        {:  RESULT = call; :}
+                        {:  RESULT = new Value("id", id); :}
+                        |   CallFunExpr:callFun
+                        {:  RESULT = callFun; :}
                         |   Expr:e1 PLUS Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("AddOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("AddOp", e1, e2); :}
                         |   Expr:e1 MINUS Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("DiffOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("DiffOp", e1, e2); :}
                         |   Expr:e1 TIMES Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("MulOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("MulOp", e1, e2); :}
                         |   Expr:e1 DIVINT Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("DivIntOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("DivIntOp", e1, e2); :}
                         |   Expr:e1 DIV Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("DivOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("DivOp", e1, e2); :}
                         |   Expr:e1 POW Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("PowOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("PowOp", e1, e2); :}
                         |   Expr:e1 STR_CONCAT Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("StrCatOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("StrCatOp", e1, e2); :}
                         |   Expr:e1 EQ Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("EQOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("EQOp", e1, e2); :}
                         |   Expr:e1 LT Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("LTOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("LTOp", e1, e2); :}
                         |   Expr:e1 LE Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("LEOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("LEOp", e1, e2); :}
                         |   Expr:e1 NE Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("NEOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                         :}
+                        {:  RESULT = new BinaryOp("NEOp", e1, e2); :}
                         |   Expr:e1 GT Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("GTOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("GTOp", e1, e2); :}
                         |   Expr:e1 GE Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("GEOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("GEOp", e1, e2); :}
                         |   Expr:e1 AND Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("AndOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("AndOp", e1, e2); :}
                         |   Expr:e1 OR Expr:e2
-                        {:
-                            RESULT = new DefaultMutableTreeNode("OrOp");
-                            RESULT.add(e1);
-                            RESULT.add(e2);
-                        :}
+                        {:  RESULT = new BinaryOp("OrOp", e1, e2); :}
                         |   NOT Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("NotOp");
-                            RESULT.add(e);
-                        :}
+                        {:  RESULT = new UnaryOp("NotOp", e); :}
                         |   MINUS Expr:e
-                        {:
-                            RESULT = new DefaultMutableTreeNode("UminusOp");
-                            RESULT.add(e);
-                        :}
+                        {:  RESULT = new UnaryOp("UminusOp", e); :}
                             %prec UMINUS
                         |   LPAR Expr:e RPAR
                         {:  RESULT = e; :}

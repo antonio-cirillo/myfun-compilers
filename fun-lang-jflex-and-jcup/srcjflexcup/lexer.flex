@@ -11,7 +11,7 @@ import java_cup.runtime.*;
 %column                         // Viene abilitato il contatore di colonne. Valore contenuto in yyycolumn
 %cup
 
-Identifier = [$_@A-Za-z] [$_@A-Za-z0-9]*
+Identifier = [$_A-Za-z] [$_@A-Za-z0-9]*
 
 IntLiteral = [0-9]+ (e-?[0-9]+)? | 0x[0-9a-f] | 0b[01]+
 RealLiteral = [0-9]+ \. [0-9]+ (e-?[0-9]+)?
@@ -92,7 +92,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 <YYINITIAL> "<"                         { return symbol(sym.LT); }
 <YYINITIAL> "<="                        { return symbol(sym.LE); }
 <YYINITIAL> "<>" | "!="                 { return symbol(sym.NE); }
-<YYINITIAL> "<-"                        { return symbol(sym.ASSIGN); }
+<YYINITIAL> ":="                        { return symbol(sym.ASSIGN); }
 <YYINITIAL> ">"                         { return symbol(sym.GT); }
 <YYINITIAL> ">="                        { return symbol(sym.GE); }
 <YYINITIAL> "and"                       { return symbol(sym.AND); }
@@ -102,6 +102,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 // FUN, RETURN
 <YYINITIAL> "fun"                       { return symbol(sym.FUN); }
 <YYINITIAL> "out"                       { return symbol(sym.OUT); }
+<YYINITIAL> "@"                         { return symbol(sym.OUTPAR); }
 <YYINITIAL> "return"                    { return symbol(sym.RETURN); }
 
 // TRUE, FALSE, NULL

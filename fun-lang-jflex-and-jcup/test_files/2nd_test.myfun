@@ -9,12 +9,12 @@
     utilizzare tutte le caratteristiche del linguaggio.
 #
 
-var $STOP <- 0;
-var $SHOWMENU <- 1;
-var $ADD <- 2;
-var $MINUS <- 3;
-var $TIMES <- 4;
-var $DIV <- 5;
+var $STOP := 0;
+var $SHOWMENU := 1;
+var $ADD := 2;
+var $MINUS := 3;
+var $TIMES := 4;
+var $DIV := 5;
 
 fun visualizzaMenu(): string
 
@@ -33,12 +33,12 @@ fun somma(integer x, integer y): integer
 end fun;
 
 fun moltiplicazione(integer x, integer y, out integer result)
-    result <- x * y; # Utilizziamo la variabile result
+    result := x * y; # Utilizziamo la variabile result
 end fun;
 
 fun sottrazione(integer x, integer y): integer
-    var differenza <- 0;
-    differenza <- x - y;
+    var differenza := 0;
+    differenza := x - y;
     return differenza;
 end fun;
 
@@ -48,7 +48,7 @@ end fun;
 
 main
 
-    integer result <- 0;
+    integer result := 0;
 
     % input visualizzaMenu();
 
@@ -63,12 +63,12 @@ main
             % input "Scegli un'altra operazione";
         else if input = $MINUS then
             % x, y "Inserisci i due numeri:\t";
-            sottrazione(x, y, result);
+            sottrazione(x, y, @result);
             ?. x & " + " & y & " = " & result;
             % input "Scegli un'altra operazione";
         else if input = $TIMES then
             % x, y "Inserisci i due numeri:\t";
-            moltiplicazione(x, y, result);
+            moltiplicazione(x, y, @result);
             ?. x & " + " & y & " = " & res;
             % input "Scegli un'altra operazione";
         else if input = $DIV then
