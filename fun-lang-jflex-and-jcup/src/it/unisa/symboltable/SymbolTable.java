@@ -27,12 +27,12 @@ public final class SymbolTable {
 
     public static void addId(String lexeme, String type) {
         Row row = new RowVar(type);
-        stack.firstElement().put(lexeme, row);
+        stack.lastElement().put(lexeme, row);
     }
 
     public static void addId(String lexeme, ArrayList<String> paramType, String returnType) {
         Row row = new RowMethod(paramType, returnType);
-        stack.firstElement().put(lexeme, row);
+        stack.lastElement().put(lexeme, row);
     }
 
     public static boolean probe(String lexeme) {

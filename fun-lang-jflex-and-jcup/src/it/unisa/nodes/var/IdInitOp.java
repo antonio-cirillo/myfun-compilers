@@ -18,8 +18,8 @@ public class IdInitOp extends DefaultMutableTreeNode {
         return visitor.visit(this);
     }
 
-    public String getId() {
-        return super.getChildAt(0).toString();
+    public Value getId() {
+        return (Value) super.getChildAt(0);
     }
 
     public Expr getExpr() {

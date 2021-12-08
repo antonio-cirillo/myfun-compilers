@@ -50,31 +50,45 @@ main
 
     integer result := 0;
 
+    integer input;
     % input visualizzaMenu();
 
     while true loop
         if input = $STOP then
             return 0;
-        else if input = $SHOW then
+        end if;
+        if input = $SHOW then
             % input visualizzaMenu();
-        else if input = $PLUS then
+        end if;
+        if input = $PLUS then
+            integer x, y;
             % x, y "Inserisci i due numeri:\t";
             ?. x & " + " & y & " = " & somma(x, y);
             % input "Scegli un'altra operazione";
-        else if input = $MINUS then
+        end if;
+        if input = $MINUS then
+            integer x, y;
             % x, y "Inserisci i due numeri:\t";
             sottrazione(x, y, @result);
             ?. x & " + " & y & " = " & result;
             % input "Scegli un'altra operazione";
-        else if input = $TIMES then
+        end if;
+        if input = $TIMES then
+            integer x, y;
             % x, y "Inserisci i due numeri:\t";
             moltiplicazione(x, y, @result);
             ?. x & " + " & y & " = " & res;
             % input "Scegli un'altra operazione";
-        else if input = $DIV then
+        end if;
+        if input = $DIV then
+            integer x, y;
             % x, y "Inserisci i due numeri:\t";
             ?. x & " div " & y & " = " & divisione(x, y);
             % input "Scegli un'altra operazione";
+        else
+            string error := "Valore di input non riconosciuto";
+            ?. error;
+            % input "Scegli un'operazione riconosciuta";
         end if;
 
     end loop;

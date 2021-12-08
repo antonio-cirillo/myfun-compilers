@@ -25,9 +25,18 @@ public class RowMethod extends Row {
         this.returnType = returnType;
     }
 
+    public String toString() {
+        String string = "type:";
+        if (paramType.size() > 0) {
+            for (String type : paramType)
+                string += type + "x";
+            string = string.substring(0, string.length() - 1);
+        }
+        string += "->" + returnType;
+        return string;
+    }
+
     private ArrayList<String> paramType;
-
     private String returnType;
-
 
 }

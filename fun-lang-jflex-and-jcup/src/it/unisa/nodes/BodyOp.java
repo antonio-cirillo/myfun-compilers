@@ -2,6 +2,7 @@ package it.unisa.nodes;
 
 import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.VarDeclOp;
+import it.unisa.visitors.scoping.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -21,48 +22,27 @@ public class BodyOp extends Stat {
                     super.add(stat);
             }
         }
+        this.varDeclList = varDeclList;
+        this.statList = statList;
+    }
+
+    public Object accept(Visitor visitor) {
+        return visitor.visit(this);
     }
 
     public ArrayList<VarDeclOp> getVarDeclList() {
-        if (super.getChildCount() == 0) return null;
-
-        Enumeration kiddies = super.children();
-        ArrayList<VarDeclOp> returnArray = new ArrayList<>();
-        while (kiddies.hasMoreElements()) {
-            DefaultMutableTreeNode kid = (DefaultMutableTreeNode) kiddies.nextElement();
-            if (kid instanceof VarDeclOp)
-                returnArray.add((VarDeclOp) kid);
-            else
-                break;
-        }
-
-        if (returnArray.size() > 0)
-            return returnArray;
-        else
-            return null;
+        return varDeclList;
     }
 
     public ArrayList<Stat> getStatList() {
-        if (super.getChildCount() == 0) return null;
-
-        Enumeration kiddies = super.children();
-        ArrayList<Stat> returnArray = new ArrayList<>();
-        while (kiddies.hasMoreElements()) {
-            DefaultMutableTreeNode kid = (DefaultMutableTreeNode) kiddies.nextElement();
-            if (kid instanceof Stat)
-                returnArray.add((Stat) kid);
-            else
-                continue;
-        }
-
-        if (returnArray.size() > 0)
-            return returnArray;
-        else
-            return null;
+        return statList;
     }
 
     public String toString() {
         return "BodyOp";
     }
+
+    private ArrayList<VarDeclOp> varDeclList;
+    private ArrayList<Stat> statList;
 
 }

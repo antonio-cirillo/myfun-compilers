@@ -33,12 +33,12 @@ terminal String MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
 terminal UMINUS, ASSOC;
 
 non terminal ProgramOp Program;
-non terminal BodyOp Main;
+non terminal BodyOp Main, Else;
 non terminal VarDeclOp VarDecl;
 non terminal FunOp Fun;
 non terminal ParamDeclOp ParamDecl;
 non terminal String Type;
-non terminal Stat Stat, IfStat, Else, WhileStat, ReadStat, WriteStat, AssignStat, CallFunStat, ReturnStat;
+non terminal Stat Stat, IfStat, WhileStat, ReadStat, WriteStat, AssignStat, CallFunStat, ReturnStat;
 non terminal Expr CallFunExpr, Expr, Const;
 
 non terminal ArrayList <VarDeclOp> VarDeclList;
@@ -220,11 +220,10 @@ IfStat                  ::= IF Expr:expr THEN VarDeclList:varDeclList StatList:s
                         {:  RESULT = new IfStatOp(expr, varDeclList, statList, elseBody); :}
 ;
 
-Else                    ::= ELSE IF Expr:expr THEN VarDeclList:varDeclList StatList:statList Else:elseBody
-                        {:  RESULT = new IfStatOp(expr, varDeclList, statList, elseBody); :}
-                        |   ELSE VarDeclList:varDeclList StatList:statList
+Else                    ::= ELSE VarDeclList:varDeclList StatList:statList
                         {:  RESULT = new BodyOp(varDeclList, statList); :}
                         |   /* empty */
+                        {:  RESULT = null; :}
 ;
 
 WhileStat               ::= WHILE Expr:expr LOOP VarDeclList:varDeclList StatList:statList END LOOP
