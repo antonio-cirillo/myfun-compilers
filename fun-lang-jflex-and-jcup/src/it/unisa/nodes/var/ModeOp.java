@@ -11,7 +11,7 @@ public class ModeOp extends DefaultMutableTreeNode {
         super.add(new DefaultMutableTreeNode(mode));
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

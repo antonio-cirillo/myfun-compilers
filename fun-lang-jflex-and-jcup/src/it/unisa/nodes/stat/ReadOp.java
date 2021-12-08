@@ -2,6 +2,7 @@ package it.unisa.nodes.stat;
 
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Value;
+import it.unisa.visitors.scoping.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ public class ReadOp extends Stat {
         super("ReadOp");
         for (Value id : idList)
             super.add(id);
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public ArrayList<Value> getIdList() {

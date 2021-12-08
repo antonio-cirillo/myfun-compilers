@@ -1,6 +1,7 @@
 package it.unisa.nodes.stat;
 
 import it.unisa.nodes.expr.Expr;
+import it.unisa.visitors.scoping.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -14,6 +15,10 @@ public class WriteOp extends Stat {
                                 type.equals("?,") ? "writeb" : "writet"
         ));
         super.add(expr);
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public String getType() {

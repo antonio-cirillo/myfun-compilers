@@ -20,7 +20,7 @@ public class ProgramOp extends DefaultMutableTreeNode {
         this.funList = funList;
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

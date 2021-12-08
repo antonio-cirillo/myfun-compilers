@@ -9,7 +9,7 @@ public abstract class Expr extends Stat {
         super(nameOp);
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

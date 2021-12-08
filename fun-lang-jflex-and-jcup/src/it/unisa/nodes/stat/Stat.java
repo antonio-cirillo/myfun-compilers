@@ -10,7 +10,7 @@ public abstract class Stat extends DefaultMutableTreeNode {
         super(nameStat);
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

@@ -18,7 +18,7 @@ public class IfStatOp extends Stat {
             super.add(elseBody);
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

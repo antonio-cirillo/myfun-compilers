@@ -40,7 +40,7 @@ public class FunOp extends DefaultMutableTreeNode {
         this.statList = statList;
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

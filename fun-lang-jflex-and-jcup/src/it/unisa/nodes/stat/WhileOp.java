@@ -16,7 +16,7 @@ public class WhileOp extends Stat {
         super.add(new BodyOp(varDeclList, statList));
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

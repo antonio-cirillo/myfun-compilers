@@ -16,7 +16,7 @@ public class VarDeclOp extends DefaultMutableTreeNode {
         this.idList = idList;
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

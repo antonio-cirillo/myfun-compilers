@@ -49,18 +49,18 @@ end fun;
 main
 
     integer result := 0;
-
     integer input;
+
     % input visualizzaMenu();
 
     while true loop
         if input = $STOP then
             return 0;
         end if;
-        if input = $SHOW then
+        if input = $SHOWMENU then
             % input visualizzaMenu();
         end if;
-        if input = $PLUS then
+        if input = $ADD then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             ?. x & " + " & y & " = " & somma(x, y);
@@ -69,21 +69,21 @@ main
         if input = $MINUS then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
-            sottrazione(x, y, @result);
-            ?. x & " + " & y & " = " & result;
+            ?. x & " + " & y & " = " & sottrazione(x, y);
             % input "Scegli un'altra operazione";
         end if;
         if input = $TIMES then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             moltiplicazione(x, y, @result);
-            ?. x & " + " & y & " = " & res;
+            ?. x & " + " & y & " = " & result;
             % input "Scegli un'altra operazione";
         end if;
         if input = $DIV then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
-            ?. x & " div " & y & " = " & divisione(x, y);
+            divisione(x, y, @result);
+            ?. x & " div " & y & " = " & result;
             % input "Scegli un'altra operazione";
         else
             string error := "Valore di input non riconosciuto";

@@ -26,7 +26,7 @@ public class BodyOp extends Stat {
         this.statList = statList;
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

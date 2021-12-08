@@ -1,11 +1,17 @@
 package it.unisa.nodes.expr;
 
+import it.unisa.visitors.scoping.Visitor;
+
 public class BinaryOp extends Expr {
 
     public BinaryOp(String nameOp, Expr e1, Expr e2) {
         super(nameOp);
         super.add(e1);
         super.add(e2);
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Expr getExpr1() {

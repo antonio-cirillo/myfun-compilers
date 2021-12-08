@@ -14,7 +14,7 @@ public class IdInitOp extends DefaultMutableTreeNode {
         super.add(expr);
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

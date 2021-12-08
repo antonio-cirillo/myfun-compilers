@@ -21,7 +21,7 @@ public class ParamDeclOp extends DefaultMutableTreeNode {
         super.add(new Value("id", id));
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 

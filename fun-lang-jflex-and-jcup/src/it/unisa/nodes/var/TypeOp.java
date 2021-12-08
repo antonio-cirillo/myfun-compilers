@@ -11,7 +11,7 @@ public class TypeOp extends DefaultMutableTreeNode {
         super.add(new DefaultMutableTreeNode(type));
     }
 
-    public Object accept(Visitor visitor) {
+    public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
 
