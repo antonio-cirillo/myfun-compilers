@@ -109,9 +109,6 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 <YYINITIAL> "true"                      { return symbol(sym.BOOL_CONST, yytext()); }
 <YYINITIAL> "false"                     { return symbol(sym.BOOL_CONST, yytext()); }
 
-// NOT USED
-// <YYINITIAL> "null"                      { return symbol(sym.NULL); }
-
 <YYINITIAL> {
 
       /* identifier */
@@ -159,7 +156,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
       \\\"                              { string.append('\"'); }
       \\                                { string.append('\\'); }
 
-      <<EOF>>                           { throw new Error("Ci sta un errore!"); }
+      <<EOF>>                           { throw new Error("Illegal line end in string literal"); }
 
 }
 
@@ -178,7 +175,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
       \"                                { string.append('\"'); }
       \\                                { string.append('\\'); }
 
-    <<EOF>>                             { throw new Error("Ci sta un errore!"); }
+    <<EOF>>                             { throw new Error("Illegal line end in string literal"); }
 
 }
 

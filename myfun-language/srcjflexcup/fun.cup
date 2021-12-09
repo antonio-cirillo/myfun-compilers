@@ -1,0 +1,324 @@
+import it.unisa.enums.*;
+import it.unisa.nodes.*;
+import it.unisa.nodes.expr.*;
+import it.unisa.nodes.stat.*;
+import it.unisa.nodes.var.*;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.ArrayList;
+
+terminal String MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
+    ID, VAR, INTEGER, REAL, STRING, BOOL,
+    FUN, LPAR, OUT, OUTPAR, RPAR, COMMA, RETURN, COLON, SEMI,
+    ASSIGN, PLUS, MINUS, TIMES, DIVINT, DIV, POW,
+    STR_CONCAT, EQ, NE, LT, LE, GT, GE, AND, OR, NOT,
+    INTEGER_CONST, REAL_CONST, STRING_CONST, BOOL_CONST,
+    WRITE, READ;
+
+// Terminali per le precedenze
+terminal UMINUS, ASSOC;
+
+non terminal ProgramOp Program;
+non terminal BodyOp Main, Else;
+non terminal VarDeclOp VarDecl;
+non terminal FunOp Fun;
+non terminal ParamDeclOp ParamDecl;
+non terminal Type Type;
+non terminal IfOp IfStat;
+non terminal WhileOp WhileStat;
+non terminal ReadOp ReadStat;
+non terminal WriteOp WriteStat;
+non terminal Stat Stat;
+non terminal AssignOp AssignStat;
+non terminal CallFunOp CallFun;
+non terminal Expr Expr;
+non terminal ConstValue Const;
+non terminal CallFunOpExpr CallFunExpr;
+
+non terminal ArrayList <FunOp> FunList;
+non terminal ArrayList <Stat> StatList;
+non terminal ArrayList <VarDeclOp> VarDeclList;
+non terminal ArrayList <ParamDeclOp> ParamDeclList, NonEmptyParamDeclList;
+non terminal ArrayList <Identifier> IdList;
+non terminal ArrayList <DefaultMutableTreeNode> IdListInit, IdListInitObbl;
+non terminal ArrayList <Expr> ExprList;
+
+/* Precedenze */
+precedence left OR;
+precedence left AND;
+precedence right NOT;
+precedence nonassoc EQ, NE, LT, LE, GT, GE;
+precedence left STR_CONCAT;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, DIVINT;
+precedence left POW;
+precedence left UMINUS;
+precedence left ASSOC;
+
+// Lista di produzioni
+
+Program                 ::= VarDeclList:varDeclList FunList:funList Main:main
+                        {:  RESULT = new ProgramOp(varDeclList, funList, main); :}
+;
+
+VarDeclList             ::= /* empty */
+                        {:  RESULT = new ArrayList <> (); :}
+    	                |   VarDecl:varDecl VarDeclList:varDeclList
+                        {:
+                            RESULT = new ArrayList <> ();
+                            RESULT.add(varDecl);
+                            RESULT.addAll(varDeclList);
+                        :}
+;
+
+Main                    ::= MAIN VarDeclList:varDeclList StatList:statList END MAIN SEMI
+                        {:  RESULT = new BodyOp(varDeclList, statList); :}
+;
+
+FunList                 ::= /* empty */
+                        {:  RESULT = new ArrayList<>(); :}
+    	                |   Fun:fun FunList:funList
+    	                {:  RESULT = new ArrayList<>();
+    	                    RESULT.add(fun);
+    	                    RESULT.addAll(funList);
+    	                :}
+;
+
+VarDecl                 ::= Type:type IdListInit:idList SEMI
+                        {:  RESULT = new VarDeclOp(type, idList); :}
+                        |   VAR IdListInitObbl:idList SEMI
+                        {:  RESULT = new VarDeclOp(Type.VAR, idList); :}
+;
+
+Type                    ::= INTEGER
+                        {:  RESULT = Type.INTEGER; :}
+                        |   REAL
+                        {:  RESULT = Type.REAL; :}
+                        |   STRING
+                        {:  RESULT = Type.STRING; :}
+                        |   BOOL
+                        {:  RESULT = Type.BOOL; :}
+;
+
+IdListInit              ::= ID:id
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(new Identifier(id));
+                        :}
+                        |   IdListInit:idList COMMA ID:id
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(new Identifier(id));
+                            RESULT.addAll(idList);
+                        :}
+                        |   ID:id ASSIGN Expr:expr
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(new IdInitOp(id, expr));
+                        :}
+    	                |   IdListInit:idList COMMA ID:id ASSIGN Expr:expr
+    	                {:  RESULT = new ArrayList<>();
+                            RESULT.add(new IdInitOp(id, expr));
+                            RESULT.addAll(idList);
+                        :}
+;
+
+IdListInitObbl          ::= ID:id ASSIGN Const:c
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(new IdInitOp(id, c));
+                        :}
+                        |   IdListInitObbl:idList COMMA ID:id ASSIGN Const:c
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(new IdInitOp(id, c));
+                            RESULT.addAll(idList);
+                        :}
+;
+
+Const                   ::= INTEGER_CONST:integerConst
+                        {:  RESULT = new ConstValue(Type.INTEGER, integerConst); :}
+                        |   REAL_CONST:realConst
+                        {:  RESULT = new ConstValue(Type.REAL, realConst); :}
+                        |   STRING_CONST:stringConst
+                        {:  RESULT = new ConstValue(Type.STRING, stringConst); :}
+                        |   BOOL_CONST:boolConst
+                        {:  RESULT = new ConstValue(Type.BOOL, boolConst); :}
+;
+
+Fun                     ::=  FUN ID:id LPAR ParamDeclList:paramDeclList RPAR COLON Type:type
+    		                VarDeclList:varDeclList StatList:statList END FUN SEMI
+    		            {:  RESULT = new FunOp(id, paramDeclList, type, varDeclList, statList); :}
+    	                |   FUN ID:id LPAR ParamDeclList:paramDeclList RPAR
+    	                    VarDeclList:varDeclList StatList:statList END FUN SEMI
+    	                {:  RESULT = new FunOp(id, paramDeclList, varDeclList, statList); :}
+
+;
+
+ParamDeclList           ::= /*empty */
+                        {:  RESULT = new ArrayList<>(); :}
+                        | NonEmptyParamDeclList:paramList
+                        {:  RESULT = paramList; :}
+;
+
+NonEmptyParamDeclList   ::= ParamDecl:param
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(param);
+                        :}
+                        |   NonEmptyParamDeclList:paramList COMMA ParamDecl:param
+                        {:  RESULT = new ArrayList<>();
+                            RESULT.add(param);
+                            RESULT.addAll(paramList);
+                        :}
+;
+
+ParamDecl               ::= Type:type ID:id
+                        {:  RESULT = new ParamDeclOp(type, id); :}
+                        |   OUT Type:type ID:id
+                        {:  RESULT = new ParamDeclOp("out", type, id); :}
+;
+
+StatList                ::= /* empty */
+                        {:  RESULT = new ArrayList<>(); :}
+                        |   Stat:stat SEMI StatList:statList
+                        {:
+                            RESULT = new ArrayList <> ();
+                            RESULT.add(stat);
+                            RESULT.addAll(statList);
+                        :}
+;
+
+Stat                    ::= IfStat:ifStat
+                        {:  RESULT = ifStat; :}
+                        |   WhileStat:whileStat
+                        {:  RESULT = whileStat; :}
+                        |   ReadStat:readStat
+                        {:  RESULT = readStat; :}
+                        |   WriteStat:writeStat
+                        {:  RESULT= writeStat; :}
+                        |   AssignStat:assignStat
+                        {:  RESULT = assignStat; :}
+                        |   CallFun:callFun
+                        {:  RESULT = callFun; :}
+                        |   RETURN Expr:expr
+                        {:  RESULT = new ReturnOp(expr); :}
+;
+
+IfStat                  ::= IF Expr:expr THEN VarDeclList:varDeclList StatList:statList Else:elseBody END IF
+                        {:  RESULT = new IfOp(expr, varDeclList, statList, elseBody); :}
+;
+
+Else                    ::= /* empty */
+                        |   ELSE VarDeclList:varDeclList StatList:statList
+                        {:  RESULT = new BodyOp(varDeclList, statList); :}
+;
+
+WhileStat               ::= WHILE Expr:expr LOOP VarDeclList:varDeclList StatList:statList END LOOP
+                        {:  RESULT = new WhileOp(expr, varDeclList, statList); :}
+;
+
+ReadStat                ::= READ IdList:idList Expr:expr
+                        {:  RESULT = new ReadOp(idList, expr); :}
+                        |   READ IdList:idList
+                        {:  RESULT = new ReadOp(idList); :}
+;
+
+IdList                  ::= ID:id
+                        {:
+                            RESULT = new ArrayList <> ();
+                            RESULT.add(new Identifier(id));
+                        :}
+                        |   IdList:idList COMMA ID:id
+                        {:
+                            RESULT = new ArrayList <> ();
+                            RESULT.add(new Identifier(id));
+                            RESULT.addAll(idList);
+                        :}
+;
+
+WriteStat               ::= WRITE:write Expr:expr
+                        {:  RESULT = new WriteOp(write, expr); :}
+;
+
+AssignStat              ::= ID:id ASSIGN Expr:expr
+                        {:  RESULT = new AssignOp(id, expr); :}
+;
+
+CallFun                 ::= ID:id LPAR ExprList:exprList RPAR
+                        {:  RESULT = new CallFunOp(id, exprList); :}
+                        |   ID:id LPAR RPAR
+                        {:  RESULT = new CallFunOp(id); :}
+;
+
+CallFunExpr             ::= ID:id LPAR ExprList:exprList RPAR
+                        {:  RESULT = new CallFunOpExpr(id, exprList); :}
+                        |   ID:id LPAR RPAR
+                        {:  RESULT = new CallFunOpExpr(id); :}
+;
+
+ExprList                ::= Expr:expr
+                        {:  RESULT = new ArrayList<>();
+                            expr.setMode("in");
+                            RESULT.add(expr);
+                        :}
+                        |   Expr:expr COMMA ExprList:exprList
+                        {:  RESULT = new ArrayList<>();
+                            expr.setMode("in");
+                            RESULT.add(expr);
+                            RESULT.addAll(exprList);
+                        :}
+                        |   OUTPAR ID:id
+                        {:  RESULT = new ArrayList<>();
+                            Identifier identifier = new Identifier(id);
+                            identifier.setMode("out");
+                            RESULT.add(identifier);
+                        :}
+                        |   OUTPAR ID:id COMMA ExprList:exprList
+                        {:  RESULT = new ArrayList<>();
+                            Identifier identifier = new Identifier(id);
+                            identifier.setMode("out");
+                            RESULT.add(identifier);
+                            RESULT.addAll(exprList);
+                        :}
+;
+
+Expr                    ::= Const:c
+                        {:  RESULT = c; :}
+                        |   ID:id
+                        {:  RESULT = new Identifier(id); :}
+                        |   CallFunExpr:callFun
+                        {:  RESULT = callFun; :}
+                        |   Expr:expr1 PLUS Expr:expr2
+                        {:  RESULT = new BinaryOp("AddOp", expr1, expr2); :}
+                        |   Expr:expr1 MINUS Expr:expr2
+                        {:  RESULT = new BinaryOp("DiffOp", expr1, expr2); :}
+                        |   Expr:expr1 TIMES Expr:expr2
+                        {:  RESULT = new BinaryOp("MulOp", expr1, expr2); :}
+                        |   Expr:expr1 DIV Expr:expr2
+                        {:  RESULT = new BinaryOp("DivOp", expr1, expr2); :}
+                        |   Expr:expr1 DIVINT Expr:expr2
+                        {:  RESULT = new BinaryOp("DivIntOp", expr1, expr2); :}
+                        |   Expr:expr1 AND Expr:expr2
+                        {:  RESULT = new BinaryOp("AndOp", expr1, expr2); :}
+                        |   Expr:expr1 POW Expr:expr2
+                        {:  RESULT = new BinaryOp("PowOp", expr1, expr2); :}
+                        |   Expr:expr1 STR_CONCAT Expr:expr2
+                        {:  RESULT = new BinaryOp("StrCatOp", expr1, expr2); :}
+                        |   Expr:expr1 OR Expr:expr2
+                        {:  RESULT = new BinaryOp("OrOp", expr1, expr2); :}
+                        |   Expr:expr1 GT Expr:expr2
+                        {:  RESULT = new BinaryOp("GTOp", expr1, expr2); :}
+                        |   Expr:expr1 GE Expr:expr2
+                        {:  RESULT = new BinaryOp("GEOp", expr1, expr2); :}
+                        |   Expr:expr1 LT Expr:expr2
+                        {:  RESULT = new BinaryOp("LTOp", expr1, expr2); :}
+                        |   Expr:expr1 LE Expr:expr2
+                        {:  RESULT = new BinaryOp("LEOp", expr1, expr2); :}
+                    	|   Expr:expr1 EQ Expr:expr2
+                        {:  RESULT = new BinaryOp("EQOp", expr1, expr2); :}
+                    	|   Expr:expr1 NE Expr:expr2
+                        {:  RESULT = new BinaryOp("NEOp", expr1, expr2); :}
+                        |   NOT Expr:expr
+                        {:  RESULT = new UnaryOp("NotOp", expr); :}
+                        |   MINUS Expr:expr
+                        {:  RESULT = new UnaryOp("UminusOp", expr); :}
+                            %prec UMINUS
+                        |   LPAR Expr:expr RPAR
+                        {:  RESULT = expr; :}
+                            %prec ASSOC
+;

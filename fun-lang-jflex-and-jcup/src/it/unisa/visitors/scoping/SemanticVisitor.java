@@ -303,6 +303,7 @@ public class SemanticVisitor implements Visitor {
         for (int i = 0; i < exprList.size(); i++) {
             String prefix = (modeList.get(i).accept(this)).equals("out") ? "out_" : "";
             String type = prefix + defineType(exprList.get(i));
+            System.out.println(type + " " + typeArgumentDefined.get(i));
             if (!type.equals(typeArgumentDefined.get(i)))
                 throw new SymbolTable.CannotResolveSymbol(lexeme);
         }
