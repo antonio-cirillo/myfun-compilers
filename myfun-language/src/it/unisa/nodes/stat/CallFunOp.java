@@ -3,6 +3,7 @@ package it.unisa.nodes.stat;
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Identifier;
 import it.unisa.nodes.var.ModeOp;
+import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
@@ -26,6 +27,10 @@ public class CallFunOp extends Stat {
         super.add(new Identifier(id));
         this.modeList = null;
         this.exprList = null;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Identifier getId() {

@@ -1,6 +1,7 @@
 package it.unisa.nodes.stat;
 
 import it.unisa.nodes.expr.Expr;
+import it.unisa.visitors.Visitor;
 
 public class ReturnOp extends Stat {
 
@@ -12,6 +13,10 @@ public class ReturnOp extends Stat {
 
     public Expr getExpr() {
         return expr;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public void setExpr(Expr expr) {

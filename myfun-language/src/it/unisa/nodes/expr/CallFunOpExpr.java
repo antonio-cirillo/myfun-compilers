@@ -1,6 +1,7 @@
 package it.unisa.nodes.expr;
 
 import it.unisa.nodes.var.ModeOp;
+import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
@@ -24,6 +25,10 @@ public class CallFunOpExpr extends Expr {
         super.add(new Identifier(id));
         this.modeList = null;
         this.exprList = null;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Identifier getId() {

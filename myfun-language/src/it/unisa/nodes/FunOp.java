@@ -6,6 +6,7 @@ import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.ParamDeclOp;
 import it.unisa.nodes.var.TypeOp;
 import it.unisa.nodes.var.VarDeclOp;
+import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -41,6 +42,10 @@ public class FunOp extends DefaultMutableTreeNode {
         this.type = null;
         this.varDeclList = varDeclList;
         this.statList = statList;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Identifier getId() {

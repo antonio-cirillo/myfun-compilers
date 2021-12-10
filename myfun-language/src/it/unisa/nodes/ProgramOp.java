@@ -1,6 +1,7 @@
 package it.unisa.nodes;
 
 import it.unisa.nodes.var.VarDeclOp;
+import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ public class ProgramOp extends DefaultMutableTreeNode {
         super.add(main);
         this.varDeclList = varDeclList;
         this.funList = funList;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public ArrayList<VarDeclOp> getVarDeclList() {

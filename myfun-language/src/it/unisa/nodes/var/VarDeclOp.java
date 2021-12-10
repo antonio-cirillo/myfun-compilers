@@ -1,6 +1,7 @@
 package it.unisa.nodes.var;
 
 import it.unisa.enums.Type;
+import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -13,6 +14,10 @@ public class VarDeclOp extends DefaultMutableTreeNode {
         for (DefaultMutableTreeNode id : idList)
             super.add(id);
         this.idList = idList;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public TypeOp getType() {

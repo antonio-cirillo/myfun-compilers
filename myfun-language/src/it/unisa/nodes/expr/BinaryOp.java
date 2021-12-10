@@ -1,5 +1,7 @@
 package it.unisa.nodes.expr;
 
+import it.unisa.visitors.Visitor;
+
 public class BinaryOp extends Expr {
 
     public BinaryOp(String nameOp, Expr expr1, Expr expr2) {
@@ -8,6 +10,10 @@ public class BinaryOp extends Expr {
         super.add(expr2);
         this.expr1 = expr1;
         this.expr2 = expr2;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Expr getExpr1() {

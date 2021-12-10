@@ -2,6 +2,7 @@ package it.unisa.nodes.var;
 
 import it.unisa.enums.Type;
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -19,6 +20,10 @@ public class ParamDeclOp extends DefaultMutableTreeNode {
         super.add(new ModeOp(mode));
         super.add(new TypeOp(type));
         super.add(new Identifier(id));
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public ModeOp getMode() {

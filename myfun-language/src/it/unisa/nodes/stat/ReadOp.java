@@ -2,6 +2,7 @@ package it.unisa.nodes.stat;
 
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
@@ -21,6 +22,10 @@ public class ReadOp extends Stat {
         for (Identifier id : idList)
             super.add(id);
         this.expr = null;
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public ArrayList<Identifier> getIdList() {

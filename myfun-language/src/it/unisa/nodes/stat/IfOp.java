@@ -3,6 +3,7 @@ package it.unisa.nodes.stat;
 import it.unisa.nodes.BodyOp;
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.var.VarDeclOp;
+import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
@@ -15,6 +16,10 @@ public class IfOp extends Stat {
         super.add(new BodyOp(varDeclList, statList));
         if (elseBody != null)
             super.add(elseBody);
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Expr getExpr() {

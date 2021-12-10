@@ -2,6 +2,7 @@ package it.unisa.nodes.var;
 
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -11,6 +12,10 @@ public class IdInitOp extends DefaultMutableTreeNode {
         super("IdInitOp");
         super.add(new Identifier(id));
         super.add(expr);
+    }
+
+    public Object accept(Visitor visitor) throws Exception {
+        return visitor.visit(this);
     }
 
     public Identifier getId() {
