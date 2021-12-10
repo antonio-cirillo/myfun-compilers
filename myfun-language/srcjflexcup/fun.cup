@@ -7,6 +7,8 @@ import it.unisa.nodes.var.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 
+import java_cup.runtime.Symbol;
+
 terminal String MAIN, IF, THEN, ELSE, WHILE, LOOP, END,
     ID, VAR, INTEGER, REAL, STRING, BOOL,
     FUN, LPAR, OUT, OUTPAR, RPAR, COMMA, RETURN, COLON, SEMI,
@@ -62,10 +64,10 @@ Program                 ::= VarDeclList:varDeclList FunList:funList Main:main
 ;
 
 VarDeclList             ::= /* empty */
-                        {:  RESULT = new ArrayList <> (); :}
+                        {:  RESULT = new ArrayList<>(); :}
     	                |   VarDecl:varDecl VarDeclList:varDeclList
                         {:
-                            RESULT = new ArrayList <> ();
+                            RESULT = new ArrayList<>();
                             RESULT.add(varDecl);
                             RESULT.addAll(varDeclList);
                         :}
@@ -104,7 +106,7 @@ IdListInit              ::= ID:id
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(new Identifier(id));
                         :}
-                        |   IdListInit:idList COMMA ID:id
+                        |   ID:id COMMA IdListInit:idList
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(new Identifier(id));
                             RESULT.addAll(idList);
@@ -113,7 +115,7 @@ IdListInit              ::= ID:id
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(new IdInitOp(id, expr));
                         :}
-    	                |   IdListInit:idList COMMA ID:id ASSIGN Expr:expr
+    	                |   ID:id ASSIGN Expr:expr COMMA IdListInit:idList
     	                {:  RESULT = new ArrayList<>();
                             RESULT.add(new IdInitOp(id, expr));
                             RESULT.addAll(idList);
@@ -124,7 +126,7 @@ IdListInitObbl          ::= ID:id ASSIGN Const:c
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(new IdInitOp(id, c));
                         :}
-                        |   IdListInitObbl:idList COMMA ID:id ASSIGN Const:c
+                        |   ID:id ASSIGN Const:c COMMA IdListInitObbl:idList
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(new IdInitOp(id, c));
                             RESULT.addAll(idList);
@@ -141,13 +143,12 @@ Const                   ::= INTEGER_CONST:integerConst
                         {:  RESULT = new ConstValue(Type.BOOL, boolConst); :}
 ;
 
-Fun                     ::=  FUN ID:id LPAR ParamDeclList:paramDeclList RPAR COLON Type:type
+Fun                     ::= FUN ID:id LPAR ParamDeclList:paramDeclList RPAR COLON Type:type
     		                VarDeclList:varDeclList StatList:statList END FUN SEMI
     		            {:  RESULT = new FunOp(id, paramDeclList, type, varDeclList, statList); :}
     	                |   FUN ID:id LPAR ParamDeclList:paramDeclList RPAR
     	                    VarDeclList:varDeclList StatList:statList END FUN SEMI
     	                {:  RESULT = new FunOp(id, paramDeclList, varDeclList, statList); :}
-
 ;
 
 ParamDeclList           ::= /*empty */
@@ -160,7 +161,7 @@ NonEmptyParamDeclList   ::= ParamDecl:param
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(param);
                         :}
-                        |   NonEmptyParamDeclList:paramList COMMA ParamDecl:param
+                        |   ParamDecl:param COMMA NonEmptyParamDeclList:paramList
                         {:  RESULT = new ArrayList<>();
                             RESULT.add(param);
                             RESULT.addAll(paramList);
@@ -194,7 +195,11 @@ Stat                    ::= IfStat:ifStat
                         |   AssignStat:assignStat
                         {:  RESULT = assignStat; :}
                         |   CallFun:callFun
-                        {:  RESULT = callFun; :}
+                        {:  RESULT = callFun;
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   RETURN Expr:expr
                         {:  RESULT = new ReturnOp(expr); :}
 ;
@@ -223,7 +228,7 @@ IdList                  ::= ID:id
                             RESULT = new ArrayList <> ();
                             RESULT.add(new Identifier(id));
                         :}
-                        |   IdList:idList COMMA ID:id
+                        |   ID:id COMMA IdList:idList
                         {:
                             RESULT = new ArrayList <> ();
                             RESULT.add(new Identifier(id));
@@ -278,47 +283,131 @@ ExprList                ::= Expr:expr
 ;
 
 Expr                    ::= Const:c
-                        {:  RESULT = c; :}
+                        {:  RESULT = c;
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   ID:id
-                        {:  RESULT = new Identifier(id); :}
+                        {:  RESULT = new Identifier(id);
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   CallFunExpr:callFun
-                        {:  RESULT = callFun; :}
+                        {:  RESULT = callFun;
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 PLUS Expr:expr2
-                        {:  RESULT = new BinaryOp("AddOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("AddOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 MINUS Expr:expr2
-                        {:  RESULT = new BinaryOp("DiffOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("DiffOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 TIMES Expr:expr2
-                        {:  RESULT = new BinaryOp("MulOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("MulOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 DIV Expr:expr2
-                        {:  RESULT = new BinaryOp("DivOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("DivOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 DIVINT Expr:expr2
-                        {:  RESULT = new BinaryOp("DivIntOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("DivIntOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 AND Expr:expr2
-                        {:  RESULT = new BinaryOp("AndOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("AndOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 POW Expr:expr2
-                        {:  RESULT = new BinaryOp("PowOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("PowOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 STR_CONCAT Expr:expr2
-                        {:  RESULT = new BinaryOp("StrCatOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("StrCatOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 OR Expr:expr2
-                        {:  RESULT = new BinaryOp("OrOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("OrOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 GT Expr:expr2
-                        {:  RESULT = new BinaryOp("GTOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("GTOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 GE Expr:expr2
-                        {:  RESULT = new BinaryOp("GEOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("GEOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 LT Expr:expr2
-                        {:  RESULT = new BinaryOp("LTOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("LTOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   Expr:expr1 LE Expr:expr2
-                        {:  RESULT = new BinaryOp("LEOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("LEOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                     	|   Expr:expr1 EQ Expr:expr2
-                        {:  RESULT = new BinaryOp("EQOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("EQOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                     	|   Expr:expr1 NE Expr:expr2
-                        {:  RESULT = new BinaryOp("NEOp", expr1, expr2); :}
+                        {:  RESULT = new BinaryOp("NEOp", expr1, expr2);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   NOT Expr:expr
-                        {:  RESULT = new UnaryOp("NotOp", expr); :}
+                        {:  RESULT = new UnaryOp("NotOp", expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                         |   MINUS Expr:expr
-                        {:  RESULT = new UnaryOp("UminusOp", expr); :}
+                        {:  RESULT = new UnaryOp("UminusOp", expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                             %prec UMINUS
                         |   LPAR Expr:expr RPAR
-                        {:  RESULT = expr; :}
+                        {:  RESULT = expr;
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                            RESULT.setColumn(sym.right);
+                        :}
                             %prec ASSOC
 ;

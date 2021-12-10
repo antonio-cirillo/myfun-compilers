@@ -1,7 +1,8 @@
 package it.unisa.enums;
 
 public enum Type {
-    INTEGER("integer"), REAL("real"), STRING("string"), BOOL("bool"), VAR("var");
+    INTEGER("integer"), REAL("real"), STRING("string"),
+    BOOL("bool"), VAR("var");
 
     private String toString;
 

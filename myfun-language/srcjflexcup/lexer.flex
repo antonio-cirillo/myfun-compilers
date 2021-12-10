@@ -41,11 +41,11 @@ WhiteSpace = {LineTerminator} | [ \t\f]
     }
 
     private Symbol symbol(int type) {
-      return new Symbol(type, yyline, yycolumn);
+      return new Symbol(type, yyline + 1, yycolumn);
     }
 
     private Symbol symbol(int type, Object o) {
-      return new Symbol(type, yyline, yycolumn, o);
+      return new Symbol(type, yyline + 1, yycolumn, o);
     }
 %}
 
