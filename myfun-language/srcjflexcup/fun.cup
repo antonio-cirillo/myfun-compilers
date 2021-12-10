@@ -1,4 +1,3 @@
-import it.unisa.enums.*;
 import it.unisa.nodes.*;
 import it.unisa.nodes.expr.*;
 import it.unisa.nodes.stat.*;
@@ -25,7 +24,7 @@ non terminal BodyOp Main, Else;
 non terminal VarDeclOp VarDecl;
 non terminal FunOp Fun;
 non terminal ParamDeclOp ParamDecl;
-non terminal Type Type;
+non terminal String Type;
 non terminal IfOp IfStat;
 non terminal WhileOp WhileStat;
 non terminal ReadOp ReadStat;
@@ -89,66 +88,90 @@ FunList                 ::= /* empty */
 VarDecl                 ::= Type:type IdListInit:idList SEMI
                         {:  RESULT = new VarDeclOp(type, idList); :}
                         |   VAR IdListInitObbl:idList SEMI
-                        {:  RESULT = new VarDeclOp(Type.VAR, idList); :}
+                        {:  RESULT = new VarDeclOp("var", idList); :}
 ;
 
 Type                    ::= INTEGER
-                        {:  RESULT = Type.INTEGER; :}
+                        {:  RESULT = "integer"; :}
                         |   REAL
-                        {:  RESULT = Type.REAL; :}
+                        {:  RESULT = "real"; :}
                         |   STRING
-                        {:  RESULT = Type.STRING; :}
+                        {:  RESULT = "string"; :}
                         |   BOOL
-                        {:  RESULT = Type.BOOL; :}
+                        {:  RESULT = "bool"; :}
 ;
 
 IdListInit              ::= ID:id
                         {:  RESULT = new ArrayList<>();
-                            RESULT.add(new Identifier(id));
+                            Identifier identifier = new Identifier(id);
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            identifier.setLine(sym.left);
+                            RESULT.add(identifier);
                         :}
                         |   ID:id COMMA IdListInit:idList
                         {:  RESULT = new ArrayList<>();
-                            RESULT.add(new Identifier(id));
+                            Identifier identifier = new Identifier(id);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2);
+                            identifier.setLine(sym.left);
+                            RESULT.add(identifier);
                             RESULT.addAll(idList);
                         :}
                         |   ID:id ASSIGN Expr:expr
                         {:  RESULT = new ArrayList<>();
-                            RESULT.add(new IdInitOp(id, expr));
+                            IdInitOp idInitOp = new IdInitOp(id, expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-3);
+                            idInitOp.getId().setLine(sym.left);
+                            RESULT.add(idInitOp);
                         :}
     	                |   ID:id ASSIGN Expr:expr COMMA IdListInit:idList
     	                {:  RESULT = new ArrayList<>();
-                            RESULT.add(new IdInitOp(id, expr));
+    	                    IdInitOp idInitOp = new IdInitOp(id, expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4);
+                            idInitOp.getId().setLine(sym.left);
+                            RESULT.add(idInitOp);
                             RESULT.addAll(idList);
                         :}
 ;
 
 IdListInitObbl          ::= ID:id ASSIGN Const:c
                         {:  RESULT = new ArrayList<>();
-                            RESULT.add(new IdInitOp(id, c));
+                            IdInitOp idInitOp = new IdInitOp(id, c);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-3);
+                            idInitOp.getId().setLine(sym.left);
+                            RESULT.add(idInitOp);
                         :}
                         |   ID:id ASSIGN Const:c COMMA IdListInitObbl:idList
                         {:  RESULT = new ArrayList<>();
-                            RESULT.add(new IdInitOp(id, c));
+                            IdInitOp idInitOp = new IdInitOp(id, c);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-4);
+                            idInitOp.getId().setLine(sym.left);
+                            RESULT.add(idInitOp);
                             RESULT.addAll(idList);
                         :}
 ;
 
 Const                   ::= INTEGER_CONST:integerConst
-                        {:  RESULT = new ConstValue(Type.INTEGER, integerConst); :}
+                        {:  RESULT = new ConstValue("integer", integerConst); :}
                         |   REAL_CONST:realConst
-                        {:  RESULT = new ConstValue(Type.REAL, realConst); :}
+                        {:  RESULT = new ConstValue("real", realConst); :}
                         |   STRING_CONST:stringConst
-                        {:  RESULT = new ConstValue(Type.STRING, stringConst); :}
+                        {:  RESULT = new ConstValue("string", stringConst); :}
                         |   BOOL_CONST:boolConst
-                        {:  RESULT = new ConstValue(Type.BOOL, boolConst); :}
+                        {:  RESULT = new ConstValue("bool", boolConst); :}
 ;
 
 Fun                     ::= FUN ID:id LPAR ParamDeclList:paramDeclList RPAR COLON Type:type
     		                VarDeclList:varDeclList StatList:statList END FUN SEMI
-    		            {:  RESULT = new FunOp(id, paramDeclList, type, varDeclList, statList); :}
+    		            {:  RESULT = new FunOp(id, paramDeclList, type, varDeclList, statList);
+    		                Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-11);
+    		                RESULT.setLine(sym.left);
+    		            :}
     	                |   FUN ID:id LPAR ParamDeclList:paramDeclList RPAR
     	                    VarDeclList:varDeclList StatList:statList END FUN SEMI
-    	                {:  RESULT = new FunOp(id, paramDeclList, varDeclList, statList); :}
+    	                {:  RESULT = new FunOp(id, paramDeclList, varDeclList, statList);
+    		                Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-9);
+    		                RESULT.setLine(sym.left);
+    		            :}
 ;
 
 ParamDeclList           ::= /*empty */
@@ -169,9 +192,15 @@ NonEmptyParamDeclList   ::= ParamDecl:param
 ;
 
 ParamDecl               ::= Type:type ID:id
-                        {:  RESULT = new ParamDeclOp(type, id); :}
+                        {:  RESULT = new ParamDeclOp(type, id);
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.getValue().setLine(sym.left);
+                        :}
                         |   OUT Type:type ID:id
-                        {:  RESULT = new ParamDeclOp("out", type, id); :}
+                        {:  RESULT = new ParamDeclOp("out", type, id);
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            RESULT.getValue().setLine(sym.left);
+                        :}
 ;
 
 StatList                ::= /* empty */

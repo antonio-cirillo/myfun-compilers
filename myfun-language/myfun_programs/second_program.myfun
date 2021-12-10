@@ -50,7 +50,6 @@ main
 
     integer result := 0;
     integer input;
-    integer test := sottrazione(somma(10, 20), 10);
 
     % input visualizzaMenu();
 

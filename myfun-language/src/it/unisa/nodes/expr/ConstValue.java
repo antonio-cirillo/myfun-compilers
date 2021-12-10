@@ -1,11 +1,10 @@
 package it.unisa.nodes.expr;
 
-import it.unisa.enums.Type;
 import it.unisa.visitors.Visitor;
 
 public class ConstValue extends Expr {
 
-    public ConstValue(Type type, String value) {
+    public ConstValue(String type, String value) {
         super("(\"" + type + "\", \"" + value + "\")");
         this.type = type;
         this.value = value;
@@ -15,7 +14,7 @@ public class ConstValue extends Expr {
         return visitor.visit(this);
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
@@ -27,7 +26,7 @@ public class ConstValue extends Expr {
         return "(" + type + ", \"" + value + "\")";
     }
 
-    private Type type;
+    private String type;
     private String value;
 
 }

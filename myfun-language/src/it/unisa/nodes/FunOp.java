@@ -1,6 +1,5 @@
 package it.unisa.nodes;
 
-import it.unisa.enums.Type;
 import it.unisa.nodes.expr.Identifier;
 import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.ParamDeclOp;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 public class FunOp extends DefaultMutableTreeNode {
 
     public FunOp(String id, ArrayList<ParamDeclOp> paramDeclList,
-                 Type type, ArrayList<VarDeclOp> varDeclList, ArrayList<Stat> statList) {
+                 String type, ArrayList<VarDeclOp> varDeclList, ArrayList<Stat> statList) {
         super("FunOp");
         super.add(new Identifier(id));
         if (paramDeclList.size() > 0) {
@@ -64,6 +63,14 @@ public class FunOp extends DefaultMutableTreeNode {
         return (BodyOp) super.getChildAt(super.getChildCount() - 1);
     }
 
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int line) {
+        this.line = line;
+    }
+
     public String toString() {
         return super.toString();
     }
@@ -72,5 +79,6 @@ public class FunOp extends DefaultMutableTreeNode {
     private TypeOp type;
     private ArrayList<VarDeclOp> varDeclList;
     private ArrayList<Stat> statList;
+    private int line;
 
 }

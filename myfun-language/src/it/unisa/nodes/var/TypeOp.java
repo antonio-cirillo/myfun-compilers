@@ -1,15 +1,14 @@
 package it.unisa.nodes.var;
 
-import it.unisa.enums.Type;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class TypeOp extends DefaultMutableTreeNode {
 
-    public TypeOp(Type type) {
+    public TypeOp(String type) {
         super("TypeOp");
-        super.add(new DefaultMutableTreeNode(type.toString()));
+        super.add(new DefaultMutableTreeNode(type));
     }
 
     public Object accept(Visitor visitor) throws Exception {
