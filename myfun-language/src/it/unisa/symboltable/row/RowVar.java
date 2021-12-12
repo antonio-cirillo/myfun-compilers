@@ -15,10 +15,18 @@ public class RowVar extends Row {
         this.type = type;
     }
 
-    public String toString() {
-        return super.toString() + "[type: " + type + "]";
+    public String getMode() {
+        return (mode == null) ? "in" : mode;
     }
 
-    private String type;
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String toString() {
+        return super.toString() + "[mode: " + getMode() + ", type: " + type + "]";
+    }
+
+    private String type, mode;
 
 }

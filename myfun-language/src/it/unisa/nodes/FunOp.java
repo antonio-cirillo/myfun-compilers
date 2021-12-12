@@ -5,6 +5,7 @@ import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.ParamDeclOp;
 import it.unisa.nodes.var.TypeOp;
 import it.unisa.nodes.var.VarDeclOp;
+import it.unisa.symboltable.row.RowMethod;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -24,8 +25,6 @@ public class FunOp extends DefaultMutableTreeNode {
         super.add(this.type);
         super.add(new BodyOp(varDeclList, statList));
         this.paramDeclList = paramDeclList;
-        this.varDeclList = varDeclList;
-        this.statList = statList;
     }
 
     public FunOp(String id, ArrayList<ParamDeclOp> paramDeclList,
@@ -39,8 +38,6 @@ public class FunOp extends DefaultMutableTreeNode {
         super.add(new BodyOp(varDeclList, statList));
         this.paramDeclList = paramDeclList;
         this.type = null;
-        this.varDeclList = varDeclList;
-        this.statList = statList;
     }
 
     public Object accept(Visitor visitor) throws Exception {
@@ -63,12 +60,12 @@ public class FunOp extends DefaultMutableTreeNode {
         return (BodyOp) super.getChildAt(super.getChildCount() - 1);
     }
 
-    public String getSignature() {
-        return signature;
+    public RowMethod getPointerToRow() {
+        return row;
     }
 
-    public void setSignature(String signature) {
-        this.signature = signature;
+    public void setPointerToRow(RowMethod row) {
+        this.row = row;
     }
 
     public int getLine() {
@@ -85,9 +82,7 @@ public class FunOp extends DefaultMutableTreeNode {
 
     private ArrayList<ParamDeclOp> paramDeclList;
     private TypeOp type;
-    private ArrayList<VarDeclOp> varDeclList;
-    private ArrayList<Stat> statList;
-    private String signature;
+    private RowMethod row;
     private int line;
 
 }

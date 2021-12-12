@@ -47,7 +47,7 @@ public class SymbolTable {
                 return "^";
             else if (nodeName.equals("DivIntOp"))
                 return "div";
-            else if (nodeName.equals("StrCatOP"))
+            else if (nodeName.equals("StrCatOp"))
                 return "&";
             else if (nodeName.equals("GT"))
                 return ">";
@@ -87,6 +87,13 @@ public class SymbolTable {
         }
     }
 
+    public static class StringConcatNotDefined extends Exception {
+        public StringConcatNotDefined(int line) {
+            super("Error at line: " + line + ".\nString concatenation can be applied " +
+                    "between variables, functions and constants.");
+        }
+    }
+
     public static class VarAreNotDefined extends Exception {
         public VarAreNotDefined(int line, String lexeme) {
             super("Error at line: " + line + ".\nVar '" + lexeme +
@@ -121,7 +128,7 @@ public class SymbolTable {
         return null;
     }
 
-    public static void addId(String lexeme, String type, int line) throws LexemeAlreadyDefined {
+    public static RowVar addId(String lexeme, String type, int line) throws LexemeAlreadyDefined {
         RowVar row = new RowVar(lexeme, type);
         if (STACK_VAR.lastElement().containsKey(lexeme)) {
             int lineAlreadyDefined = STACK_VAR.lastElement().get(lexeme).getLine();
@@ -129,23 +136,28 @@ public class SymbolTable {
         }
         row.setLine(line);
         STACK_VAR.lastElement().put(lexeme, row);
+
+        return row;
     }
 
-    public static void addId(String lexeme, ArrayList<String> paramsMode,
+    public static RowMethod addId(String lexeme, ArrayList<String> paramsMode,
                              ArrayList<String> paramsType, String returnType, int line)
             throws LexemeAlreadyDefined {
         RowMethod row = new RowMethod(lexeme, paramsMode, paramsType, returnType);
-        if (STACK_METHOD.lastElement().containsKey(row.toSignature())) {
-            RowMethod rowAlreadyDefined = STACK_METHOD.lastElement().get(row.toSignature());
-            throw new LexemeAlreadyDefined(line, rowAlreadyDefined.toSignature(), rowAlreadyDefined.getLine());
+        if (STACK_METHOD.lastElement().containsKey(row.getSignature())) {
+            RowMethod rowAlreadyDefined = STACK_METHOD.lastElement().get(row.getSignature());
+            throw new LexemeAlreadyDefined(line, rowAlreadyDefined.getSignature(),
+                    rowAlreadyDefined.getLine());
         }
         row.setLine(line);
-        STACK_METHOD.lastElement().put(row.toSignature(), row);
+        STACK_METHOD.lastElement().put(row.getSignature(), row);
+
+        return row;
     }
 
     public static void exitScope() {
-        HashMap<String, RowVar> hashMap = STACK_VAR.pop();
-        HashMap<String, RowMethod> hashMap2 = STACK_METHOD.pop();
+        STACK_VAR.pop();
+        STACK_METHOD.pop();
     }
 
     private static final Stack<HashMap<String, RowVar>> STACK_VAR = new Stack<>();

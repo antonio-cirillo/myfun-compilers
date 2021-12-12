@@ -150,11 +150,11 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 
       [^\n\r\"\\]+                      { string.append(yytext()); }
 
-      \\t                               { string.append('\t'); }
-      \\n                               { string.append('\n'); }
-      \\r                               { string.append('\r'); }
-      \\\"                              { string.append('\"'); }
-      \\                                { string.append('\\'); }
+      \\t                               { string.append("\\t"); }
+      \\n                               { string.append("\\n"); }
+      \\r                               { string.append("\\r"); }
+      \\\"                              { string.append("\""); }
+      \\                                { string.append("\\"); }
 
       <<EOF>>                           { throw new Error("Illegal line end in string literal"); }
 
@@ -168,12 +168,12 @@ WhiteSpace = {LineTerminator} | [ \t\f]
 
       [^\n\r'\"\\]+                     { string.append(yytext()); }
 
-      \\t                               { string.append('\t'); }
-      \\n                               { string.append('\n'); }
-      \\r                               { string.append('\r'); }
-      \\'                               { string.append('\''); }
-      \"                                { string.append('\"'); }
-      \\                                { string.append('\\'); }
+      \\t                               { string.append("\\t"); }
+      \\n                               { string.append("\\n"); }
+      \\r                               { string.append("\\r"); }
+      \\'                               { string.append("'"); }
+      \"                                { string.append("\""); }
+      \\                                { string.append("\\"); }
 
     <<EOF>>                             { throw new Error("Illegal line end in string literal"); }
 

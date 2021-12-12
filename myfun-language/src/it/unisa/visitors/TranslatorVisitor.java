@@ -18,8 +18,15 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(BinaryOp binaryOp) throws Exception {
         String typeOp = binaryOp.toString();
 
-        if (typeOp.equals("StrCatOp"))
+        if (typeOp.equals("StrCatOp")) {
+            fileWriter.write("concat_string(");
+            writeExprInString(binaryOp.getExpr1());
+            fileWriter.write(", ");
+            writeExprInString(binaryOp.getExpr2());
+            fileWriter.write(")");
+
             return null;
+        }
 
         binaryOp.getExpr1().accept(this);
 
@@ -54,7 +61,28 @@ public class TranslatorVisitor implements Visitor {
     }
 
     @Override
+    // Scrivo il codice relativo ad una chiamata a funzione
     public Object visit(CallFunOpExpr callFunOpExpr) throws Exception {
+        ArrayList<ModeOp> paramsMode = callFunOpExpr.getModeList();
+        ArrayList<Expr> params = callFunOpExpr.getExprList();
+
+        fileWriter.write(callFunOpExpr.getPointerToRow().getLexeme() + "(");
+
+        if (params != null && params.size() > 0) {
+            int i = 0;
+            for (; i < paramsMode.size() - 1; i++) {
+                if (paramsMode.get(i).getMode().equals("out"))
+                    fileWriter.write("&");
+                params.get(i).accept(this);
+                fileWriter.write(", ");
+            }
+            if (paramsMode.get(i).getMode().equals("out"))
+                fileWriter.write("&");
+            params.get(i).accept(this);
+        }
+
+        fileWriter.write(")");
+
         return null;
     }
 
@@ -66,9 +94,20 @@ public class TranslatorVisitor implements Visitor {
     }
 
     @Override
-    // Funzione che viene gestite dalle sottoclassi
+    // Gestisce le chiamate alle sottoclassi
     public Object visit(Expr expr) throws Exception {
-        return "";
+        if (expr instanceof BinaryOp)
+            return expr.accept(this);
+        if (expr instanceof CallFunOpExpr)
+            return expr.accept(this);
+        if (expr instanceof ConstValue)
+            return expr.accept(this);
+        if (expr instanceof Identifier)
+            return expr.accept(this);
+        if (expr instanceof UnaryOp)
+            return expr.accept(this);
+
+        return null;
     }
 
     @Override
@@ -76,7 +115,11 @@ public class TranslatorVisitor implements Visitor {
     // Sostituisco il simbolo $ con _ in quanto non è valido come simbolo nel C
     public Object visit(Identifier identifier) throws Exception {
         String lexeme = identifier.getLexeme().replaceAll("[$]", "_");
+        if (identifier.getPointerToRow() != null &&
+                identifier.getPointerToRow().getMode().equals("out"))
+            fileWriter.write("*");
         fileWriter.write(lexeme);
+
         return null;
     }
 
@@ -86,17 +129,64 @@ public class TranslatorVisitor implements Visitor {
     }
 
     @Override
+    // Scrivo il codice relativo all'assegnazione
     public Object visit(AssignOp assignOp) throws Exception {
+        fileWriter.write("\t".repeat(currentTab));
+        assignOp.getId().accept(this);
+        fileWriter.write(" = ");
+        assignOp.getExpr().accept(this);
+        fileWriter.write(";\n");
+
         return null;
     }
 
     @Override
+    // Scrivo il codice relativo ad una chiamata a funzione
     public Object visit(CallFunOp callFunOp) throws Exception {
+        ArrayList<ModeOp> paramsMode = callFunOp.getModeList();
+        ArrayList<Expr> params = callFunOp.getExprList();
+
+        fileWriter.write("\t".repeat(currentTab) + callFunOp.getPointerToRow().getLexeme() + "(");
+
+        if (params != null && params.size() > 0) {
+            int i = 0;
+            for (; i < paramsMode.size() - 1; i++) {
+                if (paramsMode.get(i).getMode().equals("out"))
+                    fileWriter.write("&");
+                params.get(i).accept(this);
+                fileWriter.write(", ");
+            }
+            if (paramsMode.get(i).getMode().equals("out"))
+                fileWriter.write("&");
+            params.get(i).accept(this);
+        }
+
+        fileWriter.write(");");
+
         return null;
     }
 
     @Override
+    // Scrivo il codice relativo all'if
     public Object visit(IfOp ifOp) throws Exception {
+        fileWriter.write("\t".repeat(currentTab) + "if(");
+        ifOp.getExpr().accept(this);
+        fileWriter.write(") {\n");
+
+        currentTab++;
+        ifOp.getIfBody().accept(this);
+        currentTab--;
+
+        fileWriter.write("\t".repeat(currentTab) + "}\n");
+
+        if (ifOp.getElseBody() != null) {
+            fileWriter.write("\t".repeat(currentTab) + "else {\n");
+            currentTab++;
+            ifOp.getElseBody().accept(this);
+            currentTab--;
+            fileWriter.write("\t".repeat(currentTab) + "}\n");
+        }
+
         return null;
     }
 
@@ -105,7 +195,9 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(ReadOp readOp) throws Exception {
         if (readOp.getExpr() != null) {
             fileWriter.write("\t".repeat(currentTab) + "printf(");
-            readOp.getExpr().accept(this);
+            if (!(readOp.getExpr() instanceof ConstValue))
+                fileWriter.write("\"%s\", ");
+            writeExprInString(readOp.getExpr());
             fileWriter.write(");\n");
         }
 
@@ -114,7 +206,7 @@ public class TranslatorVisitor implements Visitor {
         int i = 0;
         ArrayList<Identifier> idList = readOp.getIdList();
         for (; i < idList.size() - 1; i++) {
-            String type = convertType(idList.get(i).getType());
+            String type = convertType(idList.get(i).getPointerToRow().getType());
             if (type.equals("int") || type.equals("bool"))
                 fileWriter.write("%d ");
             else if (type.equals("double"))
@@ -122,7 +214,7 @@ public class TranslatorVisitor implements Visitor {
             else if (type.equals("string"))
                 fileWriter.write("%s ");
         }
-        String type = convertType(idList.get(i).getType());
+        String type = convertType(idList.get(i).getPointerToRow().getType());
         if (type.equals("int") || type.equals("bool"))
             fileWriter.write("%d\", ");
         else if (type.equals("double"))
@@ -155,18 +247,54 @@ public class TranslatorVisitor implements Visitor {
     }
 
     @Override
-    // Funzione che viene gestita dalle sottoclassi
+    // Gestisce le chiamate alle sottoclassi
     public Object visit(Stat stat) throws Exception {
-        return "";
+        if (stat instanceof AssignOp)
+            return stat.accept(this);
+        if (stat instanceof CallFunOp)
+            return stat.accept(this);
+        if (stat instanceof IfOp)
+            return stat.accept(this);
+        if (stat instanceof ReadOp)
+            return stat.accept(this);
+        if (stat instanceof ReturnOp)
+            return stat.accept(this);
+        if (stat instanceof WhileOp)
+            return stat.accept(this);
+        if (stat instanceof WriteOp)
+            return stat.accept(this);
+
+        return null;
     }
 
     @Override
+    // Scrivo il codice relativo al while
     public Object visit(WhileOp whileOp) throws Exception {
+        fileWriter.write("\t".repeat(currentTab) + "while(");
+        whileOp.getExpr().accept(this);
+        fileWriter.write(") {\n");
+
+        currentTab++;
+        whileOp.getBody().accept(this);
+        currentTab--;
+
+        fileWriter.write("\t".repeat(currentTab) + "}\n");
+
         return null;
     }
 
     @Override
     public Object visit(WriteOp writeOp) throws Exception {
+        fileWriter.write("\t".repeat(currentTab) + "printf(");
+        if (!(writeOp.getExpr() instanceof ConstValue))
+            fileWriter.write("\"%s\", ");
+        writeExprInString(writeOp.getExpr());
+        fileWriter.write(");\n");
+
+        String type = writeOp.getType();
+        if (type.equals("writeln"))
+            fileWriter.write("\t".repeat(currentTab) + "printf(\"\\n\");");
+
         return null;
     }
 
@@ -175,7 +303,13 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(IdInitOp idInitOp) throws Exception {
         idInitOp.getId().accept(this);
         fileWriter.write(" = ");
-        idInitOp.getExpr().accept(this);
+        if (idInitOp.getExpr() instanceof ConstValue
+                && ((ConstValue) idInitOp.getExpr()).getType().equals("string")) {
+            fileWriter.write("\"");
+            idInitOp.getExpr().accept(this);
+            fileWriter.write("\"");
+        } else
+            idInitOp.getExpr().accept(this);
 
         return null;
     }
@@ -191,9 +325,9 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(ParamDeclOp paramDeclOp) throws Exception {
         paramDeclOp.getType().accept(this);
         String mode = (String) paramDeclOp.getMode().accept(this);
-        if (mode.equals("out")) {
+        if (mode.equals("out"))
             fileWriter.write("*");
-        }
+
         fileWriter.write(" ");
         paramDeclOp.getId().accept(this);
 
@@ -245,13 +379,16 @@ public class TranslatorVisitor implements Visitor {
             for (VarDeclOp varDecl : varDeclList) {
                 varDecl.accept(this);
             }
+            fileWriter.write("\n");
         }
-        fileWriter.write("\n");
         ArrayList<Stat> statList = bodyOp.getStatList();
         if (statList != null && statList.size() > 0) {
-            for (Stat stat : statList) {
-                stat.accept(this);
+            int i = 0;
+            for (; i < statList.size() - 1; i++) {
+                statList.get(i).accept(this);
+                fileWriter.write("\n");
             }
+            statList.get(i).accept(this);
         }
 
         return null;
@@ -266,9 +403,9 @@ public class TranslatorVisitor implements Visitor {
             funOp.getType().accept(this);
 
         // Definisco la funzione
-        fileWriter.write(" " + funOp.getSignature() + "(");
+        fileWriter.write(" " + funOp.getPointerToRow().getLexeme() + "(");
 
-        ArrayList <ParamDeclOp> paramDeclList = funOp.getParamDeclOp();
+        ArrayList<ParamDeclOp> paramDeclList = funOp.getParamDeclOp();
         int i = 0;
 
         if (paramDeclList != null && paramDeclList.size() > 0) {
@@ -299,11 +436,40 @@ public class TranslatorVisitor implements Visitor {
 
         // Inserisco i vari import
         fileWriter.write("#include <stdio.h>\n");
+        fileWriter.write("#include <stdlib.h>\n");
         fileWriter.write("#include <string.h>\n");
         fileWriter.write("#include <math.h>\n");
         fileWriter.write("#include <stdbool.h>\n");
 
         fileWriter.write("\n");
+
+        fileWriter.write("char* int_to_string(int number) {\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char));\n");
+        fileWriter.write("\tsprintf(buffer, \"%d\", number);\n");
+        fileWriter.write("\treturn buffer;\n");
+        fileWriter.write("}\n\n");
+
+        fileWriter.write("char* double_to_string(double number) {\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char));\n");
+        fileWriter.write("\tsprintf(buffer, \"%.2f\", number);\n");
+        fileWriter.write("\treturn buffer;\n");
+        fileWriter.write("}\n\n");
+
+        fileWriter.write("char* bool_to_string(bool flag) {\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char));\n");
+        fileWriter.write("\tif(flag == true)\n");
+        fileWriter.write("\t\tbuffer = \"true\";\n");
+        fileWriter.write("\telse\n");
+        fileWriter.write("\t\tbuffer = \"false\";\n");
+        fileWriter.write("\treturn buffer;\n");
+        fileWriter.write("}\n\n");
+
+        fileWriter.write("char* concat_string(char* str1, char* str2) {\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char) * (strlen(str1) + strlen(str2)));\n");
+        fileWriter.write(("\tstrcat(buffer, str1);\n"));
+        fileWriter.write(("\tstrcat(buffer, str2);\n"));
+        fileWriter.write("\treturn buffer;\n");
+        fileWriter.write("}\n\n");
 
         // Gestisco la dichiarazione delle variabili globali
         for (VarDeclOp varDecl : programOp.getVarDeclList())
@@ -315,13 +481,11 @@ public class TranslatorVisitor implements Visitor {
         for (FunOp fun : programOp.getFunList())
             fun.accept(this);
 
-        fileWriter.write("\n");
-
         // Aumento il numero di tab di 1
         currentTab++;
 
         // Gestisco il main
-        fileWriter.write("void main() {\n");
+        fileWriter.write("int main() {\n");
         programOp.getBody().accept(this);
 
         // Chiudo il main
@@ -344,17 +508,36 @@ public class TranslatorVisitor implements Visitor {
             return "void";
     }
 
-    private String toSignature(String lexeme, ArrayList<String> paramsMode,
-                               ArrayList<String> paramsType) {
-        String string = lexeme;
-        if (paramsType != null && paramsType.size() > 0) {
-            string += "__";
-            for (int i = 0; i < paramsMode.size(); i++)
-                string += paramsMode.get(i) + "_" +
-                        paramsType.get(i) + "__";
-            string = string.substring(0, string.length() - 2);
+    private void writeExprInString(Expr expr) throws Exception {
+        if (expr instanceof ConstValue) {
+            fileWriter.write("\"");
+            expr.accept(this);
+            fileWriter.write("\"");
+        } else if (expr instanceof CallFunOpExpr) {
+            String typeReturned = ((CallFunOpExpr) expr).getPointerToRow().getReturnType();
+            if (typeReturned.equals("integer"))
+                fileWriter.write("int_to_string(");
+            else if (typeReturned.equals("real"))
+                fileWriter.write("double_to_string(");
+            else if (typeReturned.equals("bool"))
+                fileWriter.write("bool_to_string(");
+            expr.accept(this);
+            if (!typeReturned.equals("string"))
+                fileWriter.write(")");
+        } else if (expr instanceof Identifier) {
+            String type = ((Identifier) expr).getPointerToRow().getType();
+            if (type.equals("integer"))
+                fileWriter.write("int_to_string(");
+            if (type.equals("real"))
+                fileWriter.write("double_to_string(");
+            if (type.equals("bool"))
+                fileWriter.write("bool_to_string(");
+            expr.accept(this);
+            if (!type.equals("string"))
+                fileWriter.write(")");
+        } else if (expr instanceof BinaryOp) {
+            expr.accept(this);
         }
-        return string;
     }
 
     private static final String FILE_NAME = "c_gen.c";

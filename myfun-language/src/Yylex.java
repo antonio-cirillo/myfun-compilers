@@ -979,7 +979,7 @@ class Yylex implements java_cup.runtime.Scanner {
             // fall through
           case 84: break;
           case 26:
-            { string.append('\"');
+            { string.append("\"");
             }
             // fall through
           case 85: break;
@@ -991,7 +991,7 @@ class Yylex implements java_cup.runtime.Scanner {
             // fall through
           case 86: break;
           case 28:
-            { string.append('\\');
+            { string.append("\\");
             }
             // fall through
           case 87: break;
@@ -1036,22 +1036,22 @@ class Yylex implements java_cup.runtime.Scanner {
             // fall through
           case 95: break;
           case 37:
-            { string.append('\'');
+            { string.append("'");
             }
             // fall through
           case 96: break;
           case 38:
-            { string.append('\n');
+            { string.append("\\n");
             }
             // fall through
           case 97: break;
           case 39:
-            { string.append('\r');
+            { string.append("\\r");
             }
             // fall through
           case 98: break;
           case 40:
-            { string.append('\t');
+            { string.append("\\t");
             }
             // fall through
           case 99: break;

@@ -20,6 +20,32 @@ public class SemanticVisitor implements Visitor {
     public Object visit(BinaryOp binaryOp) throws Exception {
         // Ottengo il tipo di operazione
         String op = binaryOp.toString();
+
+        // Controllo sulla concatenazione di stringhe
+        if (op.equals("StrCatOp")) {
+            Expr expr1 = binaryOp.getExpr1();
+            if (expr1 instanceof UnaryOp)
+                throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
+            else if (expr1 instanceof BinaryOp) {
+                if (expr1.toString().equals("StrCatOp"))
+                    expr1.accept(this);
+                else throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
+            } else
+                expr1.accept(this);
+
+            Expr expr2 = binaryOp.getExpr2();
+            if (expr2 instanceof UnaryOp)
+                throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
+            else if (expr2 instanceof BinaryOp) {
+                if (expr2.toString().equals("StrCatOp"))
+                    expr2.accept(this);
+                else throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
+            } else
+                expr2.accept(this);
+
+            return "string";
+        }
+
         // Ottengo il tipo del primo operando
         String typeArg1 = (String) binaryOp.getExpr1().accept(this);
 
@@ -29,37 +55,42 @@ public class SemanticVisitor implements Visitor {
         // Controllo sulle operazioni aritmetiche classiche
         if (op.equals("AddOp") || op.equals("DiffOp") || op.equals("MulOp") || op.equals("DivOp")) {
             String type = ARITMETIC_TYPE[typeToInt(typeArg1)][typeToInt(typeArg2)];
-            if (type == null)
+            if (type == null) {
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
-            else
+            }
+            else {
                 return type;
+            }
         }
 
         // Controllo sull'operazione di potenza
         if (op.equals("PowOp")) {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
-                if (typeArg2.equals("integer") || typeArg2.equals("real"))
+                if (typeArg2.equals("integer") || typeArg2.equals("real")) {
                     return "real";
-                else
+                }
+                else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
-            } else
+                }
+            } else {
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
+            }
         }
 
         // Controllo sull'operazione di divisione intera
         if (op.equals("DivIntOp")) {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
-                if (typeArg2.equals("integer") || typeArg2.equals("real"))
+                if (typeArg2.equals("integer") || typeArg2.equals("real")) {
                     return "integer";
-                else
+                }
+                else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
-            } else
+                }
+            } else {
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
+            }
         }
 
-        // Controllo sulla concatenazione di stringhe
-        if (op.equals("StrCatOp"))
-            return "string";
 
         // Controllo sulle operazioni di relazione
         if (op.equals("EQOp") || op.equals("LTOp") || op.equals("LEOp") || op.equals("NEOp") ||
@@ -92,12 +123,13 @@ public class SemanticVisitor implements Visitor {
         ArrayList<ModeOp> modeList = callFunOpExpr.getModeList();
 
         // Definisco la firma del metodo che sto cercando di chiamare
-        String signature = toSignature(lexeme, modeList, exprList);
+        String signature = generateSignature(lexeme, modeList, exprList);
         RowMethod row = SymbolTable.lookupMethod(signature);
 
-        if (row != null)
+        if (row != null) {
+            callFunOpExpr.setPointerToRow(row);
             return row.getReturnType();
-        else
+        } else
             throw new SymbolTable.FunctionAreNotDefined(callFunOpExpr.getLine(), signature);
     }
 
@@ -108,18 +140,17 @@ public class SemanticVisitor implements Visitor {
     }
 
     @Override
-    // Gestore delle sottoclassi di expr
+    // Gestisce le chiamate alle sottoclassi
     public Object visit(Expr expr) throws Exception {
-        if (expr instanceof Identifier) {
-            RowVar row = SymbolTable.lookupVar((String) expr.accept(this));
-            return row.getType();
-        } else if (expr instanceof ConstValue)
+        if (expr instanceof BinaryOp)
             return expr.accept(this);
-        else if (expr instanceof BinaryOp)
+        if (expr instanceof CallFunOpExpr)
             return expr.accept(this);
-        else if (expr instanceof UnaryOp)
+        if (expr instanceof ConstValue)
             return expr.accept(this);
-        else if (expr instanceof CallFunOpExpr)
+        if (expr instanceof Identifier)
+            return expr.accept(this);
+        if (expr instanceof UnaryOp)
             return expr.accept(this);
 
         return null;
@@ -130,7 +161,7 @@ public class SemanticVisitor implements Visitor {
     public Object visit(Identifier identifier) throws Exception {
         RowVar row = SymbolTable.lookupVar(identifier.getLexeme());
         if (row != null) {
-            identifier.setType(row.getType());
+            identifier.setPointerToRow(row);
             return row.getType();
         } else
             throw new SymbolTable.VarAreNotDefined(identifier.getLine(), identifier.getLexeme());
@@ -184,12 +215,13 @@ public class SemanticVisitor implements Visitor {
         ArrayList<ModeOp> modeList = callFunOp.getModeList();
 
         // Definisco la firma del metodo che sto cercando di chiamare
-        String signature = toSignature(lexeme, modeList, exprList);
+        String signature = generateSignature(lexeme, modeList, exprList);
         RowMethod row = SymbolTable.lookupMethod(signature);
 
-        if (row != null)
+        if (row != null) {
+            callFunOp.setPointerToRow(row);
             return row.getReturnType();
-        else
+        } else
             throw new SymbolTable.FunctionAreNotDefined(callFunOp.getLine(), signature);
     }
 
@@ -245,7 +277,7 @@ public class SemanticVisitor implements Visitor {
     }
 
     @Override
-    // Gestore delle sottoclassi di stat
+    // Gestisce le chiamate alle sottoclassi
     public Object visit(Stat stat) throws Exception {
         if (stat instanceof AssignOp)
             return stat.accept(this);
@@ -347,7 +379,8 @@ public class SemanticVisitor implements Visitor {
                 // Salvo il nome della variabile
                 String lexeme = ((Identifier) id).getLexeme();
                 // Inserisco il lessema all'interno della symbol table
-                SymbolTable.addId(lexeme, type, ((Identifier) id).getLine());
+                ((Identifier) id).setPointerToRow(
+                        SymbolTable.addId(lexeme, type, ((Identifier) id).getLine()));
             }
             // Se la variabile dichiarata è inizializzata
             else if (id instanceof IdInitOp) {
@@ -360,9 +393,11 @@ public class SemanticVisitor implements Visitor {
                 // Se la dichiarazione è var allora la variabile avra il tipo corrispondete al tipo dell'assegnazione
                 // Se il tipo dichiarato corrisponde al tipo assegnato effettuo la stessa operazione
                 if (type.equals(typeAssigned))
-                    SymbolTable.addId(lexeme, typeAssigned, line);
+                    ((IdInitOp) id).getId().setPointerToRow(
+                            SymbolTable.addId(lexeme, typeAssigned, line));
                 else if (type.equals("var")) {
-                    SymbolTable.addId(lexeme, typeAssigned, line);
+                    ((IdInitOp) id).getId().setPointerToRow(
+                            SymbolTable.addId(lexeme, typeAssigned, line));
                     varDeclOp.setType(typeAssigned);
                 }
                 // Se il tipo assegnato non corrisponde al tipo della variabile lancio un'eccezione
@@ -382,6 +417,7 @@ public class SemanticVisitor implements Visitor {
                 varDecl.accept(this);
             }
         }
+
         ArrayList<Stat> statList = bodyOp.getStatList();
         if (statList != null && statList.size() > 0) {
             for (Stat stat : statList) {
@@ -419,15 +455,19 @@ public class SemanticVisitor implements Visitor {
         else
             type = "void";
 
-        funOp.setSignature(toSignatureString(lexeme, paramsMode, paramsType));
-        SymbolTable.addId(lexeme, paramsMode, paramsType, type, funOp.getLine());
+        // Aggiungo l'entry all'interno della symbol table e salvo il puntatore ad essa
+        funOp.setPointerToRow(
+                SymbolTable.addId(lexeme, paramsMode, paramsType, type, funOp.getLine()));
 
         // Creo lo scope relativo al corpo della funzione
         SymbolTable.enterScope();
         // Aggiungo i parametri all'interno dello scope della funzione
         for (int i = 0; i < paramsType.size(); i++) {
             SymbolTable.addId(paramsLexeme.get(i), paramsType.get(i), Integer.parseInt(paramsLine.get(i)));
+            if (paramsMode.get(i).equals("out"))
+                SymbolTable.lookupVar(paramsLexeme.get(i)).setMode("out");
         }
+
         // Gestisco lo scope del corpo della funzione
         funOp.getBody().accept(this);
 
@@ -475,20 +515,7 @@ public class SemanticVisitor implements Visitor {
         return -1;
     }
 
-    private String toSignatureString(String lexeme, ArrayList<String> paramsMode,
-                               ArrayList<String> paramsType) throws Exception {
-        String string = lexeme;
-        if (paramsType != null && paramsType.size() > 0) {
-            string += "__";
-            for (int i = 0; i < paramsMode.size(); i++)
-                string += paramsMode.get(i) + "_" +
-                        paramsType.get(i) + "__";
-            string = string.substring(0, string.length() - 2);
-        }
-        return string;
-    }
-
-    private String toSignature(String lexeme, ArrayList<ModeOp> paramsMode,
+    private String generateSignature(String lexeme, ArrayList<ModeOp> paramsMode,
                                ArrayList<Expr> paramsType) throws Exception {
         String string = lexeme + "(";
         if (paramsType != null && paramsType.size() > 0) {

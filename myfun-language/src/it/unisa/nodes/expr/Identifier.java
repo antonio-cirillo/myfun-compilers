@@ -1,5 +1,6 @@
 package it.unisa.nodes.expr;
 
+import it.unisa.symboltable.row.RowVar;
 import it.unisa.visitors.Visitor;
 
 public class Identifier extends Expr {
@@ -17,18 +18,19 @@ public class Identifier extends Expr {
         return lexeme;
     }
 
-    public String getType() {
-        return type;
+    public RowVar getPointerToRow() {
+        return row;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setPointerToRow(RowVar row) {
+        this.row = row;
     }
 
     public String toString() {
         return "(\"id\", \"" + lexeme + "\")";
     }
 
-    private String lexeme, type;
+    private String lexeme;
+    private RowVar row;
 
 }

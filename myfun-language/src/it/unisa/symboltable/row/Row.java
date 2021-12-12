@@ -23,7 +23,7 @@ public abstract class Row {
     }
 
     public String toString() {
-        return "[line: " + line + "]";
+        return "[lexeme: " + lexeme + ", line: " + line + "]";
     }
 
     private String lexeme;

@@ -64,31 +64,31 @@ main
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             ?. x & " + " & y & " = " & somma(x, y);
-            % input "Scegli un'altra operazione";
+            % input "Scegli un'altra operazione: ";
         end if;
         if input = $MINUS then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             ?. x & " + " & y & " = " & sottrazione(x, y);
-            % input "Scegli un'altra operazione";
+            % input "Scegli un'altra operazione: ";
         end if;
         if input = $TIMES then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             moltiplicazione(x, y, @result);
             ?. x & " + " & y & " = " & result;
-            % input "Scegli un'altra operazione";
+            % input "Scegli un'altra operazione: ";
         end if;
         if input = $DIV then
             integer x, y;
             % x, y "Inserisci i due numeri:\t";
             divisione(x, y, @result);
             ?. x & " div " & y & " = " & result;
-            % input "Scegli un'altra operazione";
+            % input "Scegli un'altra operazione: ";
         else
-            string error := "Valore di input non riconosciuto";
+            string error := "Valore di input non riconosciuto.";
             ?. error;
-            % input "Scegli un'operazione riconosciuta";
+            % input "Scegli un'operazione riconosciuta: ";
         end if;
 
     end loop;

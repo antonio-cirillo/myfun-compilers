@@ -2,28 +2,33 @@ import it.unisa.nodes.ProgramOp;
 import it.unisa.visitors.SemanticVisitor;
 import it.unisa.visitors.TranslatorVisitor;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
+import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 
 public class Compiler {
 
     public static void main(String[] args) throws Exception {
 
-        parser p = new parser(new Yylex(new FileReader(
+        parser parser = new parser(new Yylex(new FileReader(
                 System.getProperty("user.dir") + "\\myfun_programs\\" + args[0])));
 
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode) p.parse().value;
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) parser.parse().value;
         ((ProgramOp) root).accept(new SemanticVisitor());
         ((ProgramOp) root).accept(new TranslatorVisitor());
-        JTree tree = new JTree(root);
-        JScrollPane scrollPane = new JScrollPane(tree);
-        JFrame frame = new JFrame("Abstract Syntax Tree");
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-        frame.setSize(800, 500);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+
+        ProcessBuilder builder = new ProcessBuilder(
+                "cmd", "/c", "cd myfun_programs && gcc c_gen.c && a");
+        builder.redirectErrorStream(true);
+        Process p = builder.start();
+        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line;
+        while (true) {
+            line = r.readLine();
+            if (line == null) { break; }
+            System.out.println(line);
+        }
 
     }
 
