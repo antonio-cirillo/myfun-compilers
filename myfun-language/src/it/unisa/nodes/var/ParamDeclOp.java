@@ -33,7 +33,7 @@ public class ParamDeclOp extends DefaultMutableTreeNode {
         return (TypeOp) super.getChildAt(1);
     }
 
-    public Identifier getValue() {
+    public Identifier getId() {
         return (Identifier) super.getChildAt(2);
     }
 

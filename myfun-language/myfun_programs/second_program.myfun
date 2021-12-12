@@ -43,7 +43,7 @@ fun sottrazione(integer x, integer y): integer
 end fun;
 
 fun divisione(integer x, integer y, out integer result): integer
-    return x div y;
+    return x / y;
 end fun;
 
 main

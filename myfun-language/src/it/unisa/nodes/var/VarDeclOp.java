@@ -23,6 +23,11 @@ public class VarDeclOp extends DefaultMutableTreeNode {
         return (TypeOp) super.getChildAt(0);
     }
 
+    public void setType(String type) {
+        ((DefaultMutableTreeNode) (super.getChildAt(0)).
+                getChildAt(0)).setUserObject(type);
+    }
+
     public ArrayList<DefaultMutableTreeNode> getIdList() {
         return idList;
     }

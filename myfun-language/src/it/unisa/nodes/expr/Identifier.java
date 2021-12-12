@@ -17,10 +17,18 @@ public class Identifier extends Expr {
         return lexeme;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String toString() {
         return "(\"id\", \"" + lexeme + "\")";
     }
 
-    private String lexeme;
+    private String lexeme, type;
 
 }

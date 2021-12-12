@@ -1,7 +1,5 @@
 package it.unisa.symboltable.row;
 
-import it.unisa.nodes.var.ModeOp;
-
 import java.util.ArrayList;
 
 public class RowMethod extends Row {

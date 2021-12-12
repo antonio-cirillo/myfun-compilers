@@ -63,6 +63,14 @@ public class FunOp extends DefaultMutableTreeNode {
         return (BodyOp) super.getChildAt(super.getChildCount() - 1);
     }
 
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
     public int getLine() {
         return line;
     }
@@ -79,6 +87,7 @@ public class FunOp extends DefaultMutableTreeNode {
     private TypeOp type;
     private ArrayList<VarDeclOp> varDeclList;
     private ArrayList<Stat> statList;
+    private String signature;
     private int line;
 
 }

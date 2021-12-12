@@ -1,5 +1,6 @@
 import it.unisa.nodes.ProgramOp;
 import it.unisa.visitors.SemanticVisitor;
+import it.unisa.visitors.TranslatorVisitor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -15,6 +16,7 @@ public class Compiler {
 
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) p.parse().value;
         ((ProgramOp) root).accept(new SemanticVisitor());
+        ((ProgramOp) root).accept(new TranslatorVisitor());
         JTree tree = new JTree(root);
         JScrollPane scrollPane = new JScrollPane(tree);
         JFrame frame = new JFrame("Abstract Syntax Tree");

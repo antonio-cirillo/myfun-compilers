@@ -194,12 +194,12 @@ NonEmptyParamDeclList   ::= ParamDecl:param
 ParamDecl               ::= Type:type ID:id
                         {:  RESULT = new ParamDeclOp(type, id);
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
-                            RESULT.getValue().setLine(sym.left);
+                            RESULT.getId().setLine(sym.left);
                         :}
                         |   OUT Type:type ID:id
                         {:  RESULT = new ParamDeclOp("out", type, id);
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
-                            RESULT.getValue().setLine(sym.left);
+                            RESULT.getId().setLine(sym.left);
                         :}
 ;
 
@@ -247,30 +247,50 @@ WhileStat               ::= WHILE Expr:expr LOOP VarDeclList:varDeclList StatLis
 ;
 
 ReadStat                ::= READ IdList:idList Expr:expr
-                        {:  RESULT = new ReadOp(idList, expr); :}
+                        {:  RESULT = new ReadOp(idList, expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2);
+                            RESULT.setLine(sym.left);
+                        :}
                         |   READ IdList:idList
-                        {:  RESULT = new ReadOp(idList); :}
+                        {:  RESULT = new ReadOp(idList);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                        :}
 ;
 
 IdList                  ::= ID:id
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(new Identifier(id));
+                            Identifier identifier = new Identifier(id);
+                            Symbol sym = (Symbol) CUP$parser$stack.peek();
+                            identifier.setLine(sym.left);
+                            RESULT.add(identifier);
                         :}
                         |   ID:id COMMA IdList:idList
                         {:
                             RESULT = new ArrayList <> ();
-                            RESULT.add(new Identifier(id));
+                            Identifier identifier = new Identifier(id);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2);
+                            identifier.setLine(sym.left);
+                            RESULT.add(identifier);
                             RESULT.addAll(idList);
                         :}
 ;
 
 WriteStat               ::= WRITE:write Expr:expr
-                        {:  RESULT = new WriteOp(write, expr); :}
+                        {:  RESULT = new WriteOp(write, expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                        :}
 ;
 
 AssignStat              ::= ID:id ASSIGN Expr:expr
-                        {:  RESULT = new AssignOp(id, expr); :}
+                        {:  RESULT = new AssignOp(id, expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2);
+                            RESULT.getId().setLine(sym.left);
+                            sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                        :}
 ;
 
 CallFun                 ::= ID:id LPAR ExprList:exprList RPAR

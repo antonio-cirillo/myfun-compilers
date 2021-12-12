@@ -1,6 +1,5 @@
 package it.unisa.symboltable;
 
-import it.unisa.nodes.var.ModeOp;
 import it.unisa.symboltable.row.RowMethod;
 import it.unisa.symboltable.row.RowVar;
 
@@ -12,15 +11,86 @@ public class SymbolTable {
 
     public static class TypeMismatch extends Exception {
         public TypeMismatch(int line, String lexeme, String type, String typeAssigned) {
-            super("Error at line: " + line + ".\nType Mismatch for lexeme: " + lexeme +
-                    ". Required type: " + type + ", provided: " + typeAssigned);
+            super("Error at line: " + line + ".\nType Mismatch for lexeme: '" + lexeme +
+                    "'. Required type: '" + type + "', provided: '" + typeAssigned + "'.");
         }
     }
 
     public static class LexemeAlreadyDefined extends Exception {
         public LexemeAlreadyDefined(int line, String lexeme, int lineAssigned) {
-            super("Error at line: " + line + ".\nLexeme " + lexeme +
-                    " is already defined in the scope at line: " + lineAssigned);
+            super("Error at line: " + line + ".\n'" + lexeme +
+                    "' is already defined in the scope at line: " + lineAssigned + ".");
+        }
+    }
+
+    public static class OperationNotDefined extends Exception {
+        public OperationNotDefined(int line, String op, String type1, String type2) {
+            super("Error at line: " + line + ".\nOperator '" + getOpByNodeName(op) +
+                    "' cannot be applied to '" + type1 + "', '" + type2 + "'.");
+        }
+
+        public OperationNotDefined(int line, String op, String type) {
+            super("Error at line: " + line + ".\nOperator '" + getOpByNodeName(op) +
+                    "' cannot be applied to '" + type + "'.");
+        }
+
+        private static String getOpByNodeName(String nodeName) {
+            if (nodeName.equals("AddOp"))
+                return "+";
+            else if (nodeName.equals("DiffOp"))
+                return "-";
+            else if (nodeName.equals("MulOp"))
+                return "*";
+            else if (nodeName.equals("DivOp"))
+                return "/";
+            else if (nodeName.equals("PowOp"))
+                return "^";
+            else if (nodeName.equals("DivIntOp"))
+                return "div";
+            else if (nodeName.equals("StrCatOP"))
+                return "&";
+            else if (nodeName.equals("GT"))
+                return ">";
+            else if (nodeName.equals("GE"))
+                return ">=";
+            else if (nodeName.equals("LT"))
+                return "<";
+            else if (nodeName.equals("LE"))
+                return "<=";
+            else if (nodeName.equals("EQ"))
+                return "=";
+            else if (nodeName.equals("AndOp"))
+                return "and";
+            else if (nodeName.equals("OrOp"))
+                return "or";
+            else if (nodeName.equals("write"))
+                return "?";
+            else if (nodeName.equals("writeln"))
+                return "?.";
+            else if (nodeName.equals("writeb"))
+                return "?,";
+            else if (nodeName.equals("writet"))
+                return "?:";
+            else if (nodeName.equals("ReadOp"))
+                return "%";
+            else if (nodeName.equals("AssignOp"))
+                return ":=";
+            else
+                return nodeName;
+        }
+    }
+
+    public static class FunctionAreNotDefined extends Exception {
+        public FunctionAreNotDefined(int line, String signature) {
+            super("Error at line: " + line + ".\nFunction '" + signature +
+                    "' are not defined.");
+        }
+    }
+
+    public static class VarAreNotDefined extends Exception {
+        public VarAreNotDefined(int line, String lexeme) {
+            super("Error at line: " + line + ".\nVar '" + lexeme +
+                    "' are not defined.");
         }
     }
 
@@ -76,8 +146,6 @@ public class SymbolTable {
     public static void exitScope() {
         HashMap<String, RowVar> hashMap = STACK_VAR.pop();
         HashMap<String, RowMethod> hashMap2 = STACK_METHOD.pop();
-        System.out.println("Var HashMap: " + hashMap);
-        System.out.println("Method HashMap: " + hashMap2);
     }
 
     private static final Stack<HashMap<String, RowVar>> STACK_VAR = new Stack<>();

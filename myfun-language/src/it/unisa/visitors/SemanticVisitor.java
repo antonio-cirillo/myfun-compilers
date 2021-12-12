@@ -9,7 +9,6 @@ import it.unisa.nodes.var.*;
 import it.unisa.symboltable.SymbolTable;
 import it.unisa.symboltable.row.RowMethod;
 import it.unisa.symboltable.row.RowVar;
-import java_cup.runtime.Symbol;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -17,11 +16,13 @@ import java.util.ArrayList;
 public class SemanticVisitor implements Visitor {
 
     @Override
+    // Restituisce il tipo risultante dall'operazione binaria
     public Object visit(BinaryOp binaryOp) throws Exception {
-        /*// Ottengo il tipo di operazione
+        // Ottengo il tipo di operazione
         String op = binaryOp.toString();
         // Ottengo il tipo del primo operando
         String typeArg1 = (String) binaryOp.getExpr1().accept(this);
+
         // Ottengo il tipo del secondo operando
         String typeArg2 = (String) binaryOp.getExpr2().accept(this);
 
@@ -29,9 +30,31 @@ public class SemanticVisitor implements Visitor {
         if (op.equals("AddOp") || op.equals("DiffOp") || op.equals("MulOp") || op.equals("DivOp")) {
             String type = ARITMETIC_TYPE[typeToInt(typeArg1)][typeToInt(typeArg2)];
             if (type == null)
-                ; // throw new SymbolTable.OperationNotDefined(op, typeArg1, typeArg2);
+                throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
             else
                 return type;
+        }
+
+        // Controllo sull'operazione di potenza
+        if (op.equals("PowOp")) {
+            if (typeArg1.equals("integer") || typeArg1.equals("real")) {
+                if (typeArg2.equals("integer") || typeArg2.equals("real"))
+                    return "real";
+                else
+                    throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
+            } else
+                throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
+        }
+
+        // Controllo sull'operazione di divisione intera
+        if (op.equals("DivIntOp")) {
+            if (typeArg1.equals("integer") || typeArg1.equals("real")) {
+                if (typeArg2.equals("integer") || typeArg2.equals("real"))
+                    return "integer";
+                else
+                    throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
+            } else
+                throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
         }
 
         // Controllo sulla concatenazione di stringhe
@@ -43,7 +66,7 @@ public class SemanticVisitor implements Visitor {
                 op.equals("GTOp") || op.equals("GEOp")) {
             String type = RELATION_TYPE[typeToInt(typeArg1)][typeToInt(typeArg2)];
             if (type == null)
-                ; // throw new SymbolTable.OperationNotDefined(op, typeArg1, typeArg2);
+                throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
             else
                 return type;
         }
@@ -53,36 +76,29 @@ public class SemanticVisitor implements Visitor {
             if (typeArg1.equals("bool") && typeArg2.equals("bool"))
                 return "bool";
             else
-                ; // throw new SymbolTable.OperationNotDefined(op, typeArg1, typeArg2);
+                throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
         }
-*/
+
         return null;
     }
 
     @Override
+    // Controlla se la funzione chiamanete esiste e ritorna il tipo ritornato da essa
     public Object visit(CallFunOpExpr callFunOpExpr) throws Exception {
-        /*// Ottengo il lessema della funzione
-        String lexeme = (String) callFunOpExpr.getId().accept(this);
+        // Ottengo il lessema della funzione
+        String lexeme = callFunOpExpr.getId().getLexeme();
         // Ottengo le informazioni sui parametri
         ArrayList<Expr> exprList = callFunOpExpr.getExprList();
         ArrayList<ModeOp> modeList = callFunOpExpr.getModeList();
 
         // Definisco la firma del metodo che sto cercando di chiamare
-        String signature = lexeme + "(";
-        for (int i = 0; i < exprList.size(); i++) {
-            signature += modeList.get(i).accept(this) + "_" +
-                    exprList.get(i).accept(this) + ", ";
-        }
-        signature = signature.substring(0, signature.length() - 2) + ")";
-        System.out.println(signature);
-
+        String signature = toSignature(lexeme, modeList, exprList);
         RowMethod row = SymbolTable.lookupMethod(signature);
 
-        if (row != null) {
+        if (row != null)
             return row.getReturnType();
-        }
-*/
-        return null;
+        else
+            throw new SymbolTable.FunctionAreNotDefined(callFunOpExpr.getLine(), signature);
     }
 
     @Override
@@ -92,8 +108,7 @@ public class SemanticVisitor implements Visitor {
     }
 
     @Override
-    // Handle di chiamate sui sotto tipi di Expr
-    // Restituisce il tipo dell'espressione
+    // Gestore delle sottoclassi di expr
     public Object visit(Expr expr) throws Exception {
         if (expr instanceof Identifier) {
             RowVar row = SymbolTable.lookupVar((String) expr.accept(this));
@@ -111,42 +126,126 @@ public class SemanticVisitor implements Visitor {
     }
 
     @Override
-    // Restituisce il lessema dell'identificatore
+    // Restituisce il tipo dell'identificatore
     public Object visit(Identifier identifier) throws Exception {
-        return identifier.getLexeme();
+        RowVar row = SymbolTable.lookupVar(identifier.getLexeme());
+        if (row != null) {
+            identifier.setType(row.getType());
+            return row.getType();
+        } else
+            throw new SymbolTable.VarAreNotDefined(identifier.getLine(), identifier.getLexeme());
     }
 
     @Override
+    // Restituisce il tipo risultante dall'operazione unaria
     public Object visit(UnaryOp unaryOp) throws Exception {
+        // Ottengo il tipo di operazione
+        String op = unaryOp.toString();
+        // Ottengo il tipo dell'operando
+        String typeArg = (String) unaryOp.getExpr().accept(this);
+
+        // Controllo sull'operazioen di uminus
+        if (op.equals("UminusOp")) {
+            if (typeArg.equals("integer") || typeArg.equals("real"))
+                return typeArg;
+            else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
+        }
+
+        // Controllo sull'operazione di not
+        if (op.equals("NotOp")) {
+            if (typeArg.equals("bool"))
+                return "bool";
+            else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
+        }
+
         return null;
     }
 
     @Override
+    // Controllo se il tipo dell'identificatore coincide con quello dell'espressione assegnata
     public Object visit(AssignOp assignOp) throws Exception {
+        String type = (String) assignOp.getId().accept(this);
+        String typeAssigned = (String) assignOp.getExpr().accept(this);
+
+        if (!type.equals(typeAssigned))
+            throw new SymbolTable.TypeMismatch(assignOp.getId().getLine(),
+                    assignOp.getId().getLexeme(), type, typeAssigned);
+
         return null;
     }
 
     @Override
+    // Controlla se la funzione chiamanete esiste e ritorna il tipo ritornato da essa
     public Object visit(CallFunOp callFunOp) throws Exception {
-        return null;
+        // Ottengo il lessema della funzione
+        String lexeme = callFunOp.getId().getLexeme();
+        // Ottengo le informazioni sui parametri
+        ArrayList<Expr> exprList = callFunOp.getExprList();
+        ArrayList<ModeOp> modeList = callFunOp.getModeList();
+
+        // Definisco la firma del metodo che sto cercando di chiamare
+        String signature = toSignature(lexeme, modeList, exprList);
+        RowMethod row = SymbolTable.lookupMethod(signature);
+
+        if (row != null)
+            return row.getReturnType();
+        else
+            throw new SymbolTable.FunctionAreNotDefined(callFunOp.getLine(), signature);
     }
 
     @Override
+    // Controllo se la condizione è di tipo bool
+    // Gestisco lo scope del body del if
+    // Gestisco lo scope del body del while
     public Object visit(IfOp ifOp) throws Exception {
+        // Controllo se la condizione è di tipo booleana
+        String type = (String) ifOp.getExpr().accept(this);
+        if (!type.equals("bool"))
+            throw new SymbolTable.OperationNotDefined(ifOp.getExpr().getLine(),
+                    "if condition", type);
+
+        // Entro nello scope dell'if
+        SymbolTable.enterScope();
+        // Gestisco lo scope dell'if
+        ifOp.getIfBody().accept(this);
+        // Esco dallo scope dell'if
+        SymbolTable.exitScope();
+
+        // Se l'else non è presente termino i controlli
+        if (ifOp.getElseBody() == null)
+            return null;
+
+        // Entro nello scope dell'else
+        SymbolTable.enterScope();
+        // Gestisco lo scope dell'else
+        ifOp.getElseBody().accept(this);
+        // Esco dallo scope dell'else
+        SymbolTable.exitScope();
+
         return null;
     }
 
     @Override
+    // Controllo se gli identificatori utilizzati sono stati dichiarati
+    // Controllo se l'espressione da stampare è una stringa
     public Object visit(ReadOp readOp) throws Exception {
-        return null;
+        for (Identifier id : readOp.getIdList())
+            id.accept(this);
+        String type = (String) readOp.getExpr().accept(this);
+        if (type.equals("string"))
+            return null;
+        else
+            throw new SymbolTable.OperationNotDefined(readOp.getLine(), readOp.toString(), type);
     }
 
     @Override
+    // Restituisce il tipo restituito dall'operazione di return
     public Object visit(ReturnOp returnOp) throws Exception {
-        return null;
+        return returnOp.getExpr().accept(this);
     }
 
     @Override
+    // Gestore delle sottoclassi di stat
     public Object visit(Stat stat) throws Exception {
         if (stat instanceof AssignOp)
             return stat.accept(this);
@@ -167,13 +266,33 @@ public class SemanticVisitor implements Visitor {
     }
 
     @Override
+    // Controllo se la condizione è di tipo bool
+    // Gestisco lo scope del body del while
     public Object visit(WhileOp whileOp) throws Exception {
+        // Controllo se la condizione è di tipo booleana
+        String type = (String) whileOp.getExpr().accept(this);
+        if (!type.equals("bool"))
+            throw new SymbolTable.OperationNotDefined(whileOp.getExpr().getLine(),
+                    "while condition", type);
+
+        // Entro nello scope del while
+        SymbolTable.enterScope();
+        // Gestisco lo scope del while
+        whileOp.getBody().accept(this);
+        // Esco dallo scope del while
+        SymbolTable.exitScope();
+
         return null;
     }
 
     @Override
+    // Controllo se l'espressione da stampare è una stringa
     public Object visit(WriteOp writeOp) throws Exception {
-        return null;
+        String type = (String) writeOp.getExpr().accept(this);
+        if (type.equals("string"))
+            return null;
+        else
+            throw new SymbolTable.OperationNotDefined(writeOp.getLine(), writeOp.getType(), type);
     }
 
     @Override
@@ -182,7 +301,7 @@ public class SemanticVisitor implements Visitor {
     // Il lessema della varaibile
     public Object visit(IdInitOp idInitOp) throws Exception {
         String type = (String) idInitOp.getExpr().accept(this);
-        String lexeme = (String) idInitOp.getId().accept(this);
+        String lexeme = idInitOp.getId().getLexeme();
 
         return new String[]{type, lexeme};
     }
@@ -202,8 +321,8 @@ public class SemanticVisitor implements Visitor {
     public Object visit(ParamDeclOp paramDeclOp) throws Exception {
         String mode = (String) paramDeclOp.getMode().accept(this);
         String type = (String) paramDeclOp.getType().accept(this);
-        String lexeme = (String) paramDeclOp.getValue().accept(this);
-        String line = paramDeclOp.getValue().getLine() + "";
+        String lexeme = paramDeclOp.getId().getLexeme();
+        String line = paramDeclOp.getId().getLine() + "";
 
         return new String[]{mode, type, lexeme, line};
     }
@@ -226,7 +345,7 @@ public class SemanticVisitor implements Visitor {
             // Se la variabile dichiarata non è inizializzata
             if (id instanceof Identifier) {
                 // Salvo il nome della variabile
-                String lexeme = (String) ((Identifier) id).accept(this);
+                String lexeme = ((Identifier) id).getLexeme();
                 // Inserisco il lessema all'interno della symbol table
                 SymbolTable.addId(lexeme, type, ((Identifier) id).getLine());
             }
@@ -240,9 +359,13 @@ public class SemanticVisitor implements Visitor {
                 // Ottengo il numero della linea di codice dove effettuo questa operazione
                 // Se la dichiarazione è var allora la variabile avra il tipo corrispondete al tipo dell'assegnazione
                 // Se il tipo dichiarato corrisponde al tipo assegnato effettuo la stessa operazione
-                if (type.equals("var") || type.equals((typeAssigned)))
+                if (type.equals(typeAssigned))
                     SymbolTable.addId(lexeme, typeAssigned, line);
-                    // Se il tipo assegnato non corrisponde al tipo della variabile lancio un'eccezione
+                else if (type.equals("var")) {
+                    SymbolTable.addId(lexeme, typeAssigned, line);
+                    varDeclOp.setType(typeAssigned);
+                }
+                // Se il tipo assegnato non corrisponde al tipo della variabile lancio un'eccezione
                 else
                     throw new SymbolTable.TypeMismatch(line, lexeme, type, typeAssigned);
             }
@@ -273,7 +396,7 @@ public class SemanticVisitor implements Visitor {
     // Gestisce lo scope di FunOp
     public Object visit(FunOp funOp) throws Exception {
         // Ottengo il lessema della funzione
-        String lexeme = (String) funOp.getId().accept(this);
+        String lexeme = funOp.getId().getLexeme();
         // Inizializzo gli array di modalità, tipo e lessemi degli argomenti
         ArrayList<String> paramsMode = new ArrayList<>();
         ArrayList<String> paramsType = new ArrayList<>();
@@ -296,6 +419,7 @@ public class SemanticVisitor implements Visitor {
         else
             type = "void";
 
+        funOp.setSignature(toSignatureString(lexeme, paramsMode, paramsType));
         SymbolTable.addId(lexeme, paramsMode, paramsType, type, funOp.getLine());
 
         // Creo lo scope relativo al corpo della funzione
@@ -349,6 +473,32 @@ public class SemanticVisitor implements Visitor {
             return 3;
 
         return -1;
+    }
+
+    private String toSignatureString(String lexeme, ArrayList<String> paramsMode,
+                               ArrayList<String> paramsType) throws Exception {
+        String string = lexeme;
+        if (paramsType != null && paramsType.size() > 0) {
+            string += "__";
+            for (int i = 0; i < paramsMode.size(); i++)
+                string += paramsMode.get(i) + "_" +
+                        paramsType.get(i) + "__";
+            string = string.substring(0, string.length() - 2);
+        }
+        return string;
+    }
+
+    private String toSignature(String lexeme, ArrayList<ModeOp> paramsMode,
+                               ArrayList<Expr> paramsType) throws Exception {
+        String string = lexeme + "(";
+        if (paramsType != null && paramsType.size() > 0) {
+            for (int i = 0; i < paramsMode.size(); i++)
+                string += paramsMode.get(i).accept(this) + "_" +
+                        paramsType.get(i).accept(this) + ", ";
+            string = string.substring(0, string.length() - 2);
+        }
+        string += ")";
+        return string;
     }
 
     private static final String[][] ARITMETIC_TYPE = {
