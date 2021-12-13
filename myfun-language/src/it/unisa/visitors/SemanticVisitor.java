@@ -263,11 +263,14 @@ public class SemanticVisitor implements Visitor {
     public Object visit(ReadOp readOp) throws Exception {
         for (Identifier id : readOp.getIdList())
             id.accept(this);
-        String type = (String) readOp.getExpr().accept(this);
-        if (type.equals("string"))
+        if(readOp.getExpr() != null) {
+            String type = (String) readOp.getExpr().accept(this);
+            if (type.equals("string"))
+                return null;
+            else
+                throw new SymbolTable.OperationNotDefined(readOp.getLine(), readOp.toString(), type);
+        } else
             return null;
-        else
-            throw new SymbolTable.OperationNotDefined(readOp.getLine(), readOp.toString(), type);
     }
 
     @Override

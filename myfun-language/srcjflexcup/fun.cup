@@ -254,7 +254,6 @@ ReadStat                ::= READ IdList:idList Expr:expr
                         |   READ IdList:idList
                         {:  RESULT = new ReadOp(idList);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
-                            RESULT.setLine(sym.left);
                         :}
 ;
 

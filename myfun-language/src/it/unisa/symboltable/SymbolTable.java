@@ -49,15 +49,15 @@ public class SymbolTable {
                 return "div";
             else if (nodeName.equals("StrCatOp"))
                 return "&";
-            else if (nodeName.equals("GT"))
+            else if (nodeName.equals("GTOp"))
                 return ">";
-            else if (nodeName.equals("GE"))
+            else if (nodeName.equals("GEOp"))
                 return ">=";
-            else if (nodeName.equals("LT"))
+            else if (nodeName.equals("LTOp"))
                 return "<";
-            else if (nodeName.equals("LE"))
+            else if (nodeName.equals("LEOp"))
                 return "<=";
-            else if (nodeName.equals("EQ"))
+            else if (nodeName.equals("EQOp"))
                 return "=";
             else if (nodeName.equals("AndOp"))
                 return "and";

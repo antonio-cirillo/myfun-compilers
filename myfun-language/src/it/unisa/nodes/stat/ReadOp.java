@@ -21,6 +21,7 @@ public class ReadOp extends Stat {
         super("ReadOp");
         for (Identifier id : idList)
             super.add(id);
+        this.idList = idList;
         this.expr = null;
     }
 

@@ -466,6 +466,7 @@ public class TranslatorVisitor implements Visitor {
 
         fileWriter.write("char* concat_string(char* str1, char* str2) {\n");
         fileWriter.write("\tchar* buffer = malloc(sizeof(char) * (strlen(str1) + strlen(str2)));\n");
+        fileWriter.write(("\t*buffer = '\\0';\n"));
         fileWriter.write(("\tstrcat(buffer, str1);\n"));
         fileWriter.write(("\tstrcat(buffer, str2);\n"));
         fileWriter.write("\treturn buffer;\n");
