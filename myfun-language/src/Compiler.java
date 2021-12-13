@@ -3,9 +3,7 @@ import it.unisa.visitors.SemanticVisitor;
 import it.unisa.visitors.TranslatorVisitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.Scanner;
@@ -35,9 +33,6 @@ public class Compiler {
             if (line == null) { break; }
             System.out.println(line);
         }
-
-        File file = new File(System.getProperty("user.dir") + "\\myfun_programs\\a.exe");
-        Desktop.getDesktop().open(file);
 
     }
 
