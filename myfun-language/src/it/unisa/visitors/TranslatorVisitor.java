@@ -28,6 +28,16 @@ public class TranslatorVisitor implements Visitor {
             return null;
         }
 
+        if (typeOp.equals("PowOp")) {
+            fileWriter.write("pow(");
+            binaryOp.getExpr1().accept(this);
+            fileWriter.write(", ");
+            binaryOp.getExpr2().accept(this);
+            fileWriter.write(")");
+
+            return null;
+        }
+
         fileWriter.write("(");
         binaryOp.getExpr1().accept(this);
 
@@ -127,6 +137,17 @@ public class TranslatorVisitor implements Visitor {
 
     @Override
     public Object visit(UnaryOp unaryOp) throws Exception {
+        String typeOp = unaryOp.toString();
+        fileWriter.write("(");
+
+        if (typeOp.equals("UminusOp"))
+            fileWriter.write(" - ");
+        else
+            fileWriter.write(" ! ");
+
+        unaryOp.getExpr().accept(this);
+        fileWriter.write(")");
+
         return null;
     }
 
