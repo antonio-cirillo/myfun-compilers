@@ -1,12 +1,14 @@
 package it.unisa.nodes.expr;
 
+import it.unisa.nodes.interfaces.PointedTable;
 import it.unisa.nodes.var.ModeOp;
 import it.unisa.symboltable.row.RowMethod;
 import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
-public class CallFunOpExpr extends Expr {
+public class CallFunOpExpr
+        extends Expr implements PointedTable<RowMethod> {
 
     public CallFunOpExpr(String id, ArrayList<Expr> exprList) {
         super("CallFunOp");
@@ -44,10 +46,12 @@ public class CallFunOpExpr extends Expr {
         return exprList;
     }
 
+    @Override
     public RowMethod getPointerToRow() {
         return row;
     }
 
+    @Override
     public void setPointerToRow(RowMethod row) {
         this.row = row;
     }

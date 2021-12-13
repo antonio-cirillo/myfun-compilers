@@ -2,13 +2,15 @@ package it.unisa.nodes.stat;
 
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.nodes.interfaces.PointedTable;
 import it.unisa.nodes.var.ModeOp;
 import it.unisa.symboltable.row.RowMethod;
 import it.unisa.visitors.Visitor;
 
 import java.util.ArrayList;
 
-public class CallFunOp extends Stat {
+public class CallFunOp
+        extends Stat implements PointedTable<RowMethod> {
 
     public CallFunOp(String id, ArrayList<Expr> exprList) {
         super("CallFunOp");

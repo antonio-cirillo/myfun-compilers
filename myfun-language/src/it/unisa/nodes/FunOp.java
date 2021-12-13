@@ -1,6 +1,7 @@
 package it.unisa.nodes;
 
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.nodes.interfaces.Lineable;
 import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.ParamDeclOp;
 import it.unisa.nodes.var.TypeOp;
@@ -11,7 +12,8 @@ import it.unisa.visitors.Visitor;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 
-public class FunOp extends DefaultMutableTreeNode {
+public class FunOp
+        extends DefaultMutableTreeNode implements Lineable {
 
     public FunOp(String id, ArrayList<ParamDeclOp> paramDeclList,
                  String type, ArrayList<VarDeclOp> varDeclList, ArrayList<Stat> statList) {

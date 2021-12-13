@@ -1,6 +1,8 @@
 package it.unisa.symboltable.row;
 
-public abstract class Row {
+import it.unisa.nodes.interfaces.Lineable;
+
+public abstract class Row implements Lineable {
 
     public Row(String lexeme) {
         this.lexeme = lexeme;
@@ -14,10 +16,12 @@ public abstract class Row {
         this.lexeme = lexeme;
     }
 
+    @Override
     public int getLine() {
         return line;
     }
 
+    @Override
     public void setLine(int line) {
         this.line = line;
     }

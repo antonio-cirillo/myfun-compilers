@@ -1,10 +1,12 @@
 package it.unisa.nodes.stat;
 
+import it.unisa.nodes.interfaces.Lineable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public abstract class Stat extends DefaultMutableTreeNode {
+public abstract class Stat
+        extends DefaultMutableTreeNode implements Lineable {
 
     public Stat(String nameStat) {
         super(nameStat);
@@ -14,26 +16,20 @@ public abstract class Stat extends DefaultMutableTreeNode {
         return visitor.visit(this);
     }
 
+    @Override
     public int getLine() {
         return line;
     }
 
+    @Override
     public void setLine(int line) {
         this.line = line;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
-    public void setColumn(int column) {
-        this.column = column;
     }
 
     public String toString() {
         return super.toString();
     }
 
-    private int line, column;
+    private int line;
 
 }

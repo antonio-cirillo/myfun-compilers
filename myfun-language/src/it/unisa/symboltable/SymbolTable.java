@@ -141,7 +141,7 @@ public class SymbolTable {
     }
 
     public static RowMethod addId(String lexeme, ArrayList<String> paramsMode,
-                             ArrayList<String> paramsType, String returnType, int line)
+                                  ArrayList<String> paramsType, String returnType, int line)
             throws LexemeAlreadyDefined {
         RowMethod row = new RowMethod(lexeme, paramsMode, paramsType, returnType);
         if (STACK_METHOD.lastElement().containsKey(row.getSignature())) {

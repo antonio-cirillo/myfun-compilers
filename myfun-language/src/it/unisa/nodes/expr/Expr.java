@@ -1,10 +1,12 @@
 package it.unisa.nodes.expr;
 
+import it.unisa.nodes.interfaces.Lineable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public abstract class Expr extends DefaultMutableTreeNode {
+public abstract class Expr
+        extends DefaultMutableTreeNode implements Lineable {
 
     public Expr(String expr) {
         super(expr);
@@ -22,20 +24,14 @@ public abstract class Expr extends DefaultMutableTreeNode {
         this.mode = mode;
     }
 
+    @Override
     public int getLine() {
         return line;
     }
 
+    @Override
     public void setLine(int line) {
         this.line = line;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
-    public void setColumn(int column) {
-        this.column = column;
     }
 
     public String toString() {
@@ -43,6 +39,6 @@ public abstract class Expr extends DefaultMutableTreeNode {
     }
 
     private String mode;
-    private int line, column;
+    private int line;
 
 }

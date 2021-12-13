@@ -1,3 +1,5 @@
+// java -jar C:\CUP\java-cup-11b.jar -dump -destdir src srcjflexcup/fun.cup 2>srcjflexcup/dump
+
 import it.unisa.nodes.*;
 import it.unisa.nodes.expr.*;
 import it.unisa.nodes.stat.*;
@@ -227,7 +229,6 @@ Stat                    ::= IfStat:ifStat
                         {:  RESULT = callFun;
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   RETURN Expr:expr
                         {:  RESULT = new ReturnOp(expr); :}
@@ -334,128 +335,107 @@ Expr                    ::= Const:c
                         {:  RESULT = c;
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   ID:id
                         {:  RESULT = new Identifier(id);
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   CallFunExpr:callFun
                         {:  RESULT = callFun;
                             Symbol sym = (Symbol) CUP$parser$stack.peek();
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 PLUS Expr:expr2
                         {:  RESULT = new BinaryOp("AddOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 MINUS Expr:expr2
                         {:  RESULT = new BinaryOp("DiffOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 TIMES Expr:expr2
                         {:  RESULT = new BinaryOp("MulOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 DIV Expr:expr2
                         {:  RESULT = new BinaryOp("DivOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 DIVINT Expr:expr2
                         {:  RESULT = new BinaryOp("DivIntOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 AND Expr:expr2
                         {:  RESULT = new BinaryOp("AndOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 POW Expr:expr2
                         {:  RESULT = new BinaryOp("PowOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 STR_CONCAT Expr:expr2
                         {:  RESULT = new BinaryOp("StrCatOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 OR Expr:expr2
                         {:  RESULT = new BinaryOp("OrOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 GT Expr:expr2
                         {:  RESULT = new BinaryOp("GTOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 GE Expr:expr2
                         {:  RESULT = new BinaryOp("GEOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 LT Expr:expr2
                         {:  RESULT = new BinaryOp("LTOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   Expr:expr1 LE Expr:expr2
                         {:  RESULT = new BinaryOp("LEOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                     	|   Expr:expr1 EQ Expr:expr2
                         {:  RESULT = new BinaryOp("EQOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                     	|   Expr:expr1 NE Expr:expr2
                         {:  RESULT = new BinaryOp("NEOp", expr1, expr2);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   NOT Expr:expr
                         {:  RESULT = new UnaryOp("NotOp", expr);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                         |   MINUS Expr:expr
                         {:  RESULT = new UnaryOp("UminusOp", expr);
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                             %prec UMINUS
                         |   LPAR Expr:expr RPAR
                         {:  RESULT = expr;
                             Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
                             RESULT.setLine(sym.left);
-                            RESULT.setColumn(sym.right);
                         :}
                             %prec ASSOC
 ;

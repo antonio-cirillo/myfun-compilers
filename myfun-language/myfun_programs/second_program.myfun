@@ -42,8 +42,8 @@ fun sottrazione(integer x, integer y): integer
     return differenza;
 end fun;
 
-fun divisione(integer x, integer y, out integer result): integer
-    return x / y;
+fun divisione(integer x, integer y, out integer result)
+    result := x / y;
 end fun;
 
 main
@@ -69,14 +69,14 @@ main
                     if input = $MINUS then
                         integer x, y;
                         % x, y "Inserisci i due numeri:\t";
-                        ?. x & " + " & y & " = " & sottrazione(x, y);
+                        ?. x & " - " & y & " = " & sottrazione(x, y);
                         % input "Scegli un'altra operazione: ";
                     else
                         if input = $TIMES then
                             integer x, y;
                             % x, y "Inserisci i due numeri:\t";
                             moltiplicazione(x, y, @result);
-                            ?. x & " + " & y & " = " & result;
+                            ?. x & " * " & y & " = " & result;
                             % input "Scegli un'altra operazione: ";
                         else
                             if input = $DIV then
