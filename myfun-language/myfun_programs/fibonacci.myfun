@@ -9,6 +9,9 @@ end fun;
 main
 
     integer number;
+    integer test := 40 + 50 - 40 - -10;
+
+    ?. test & "";
 
     ?. "Inserisci un numero:";
     % number;
