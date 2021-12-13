@@ -28,6 +28,7 @@ public class TranslatorVisitor implements Visitor {
             return null;
         }
 
+        fileWriter.write("(");
         binaryOp.getExpr1().accept(this);
 
         if (typeOp.equals("AddOp"))
@@ -56,6 +57,7 @@ public class TranslatorVisitor implements Visitor {
             fileWriter.write(" != ");
 
         binaryOp.getExpr2().accept(this);
+        fileWriter.write(")");
 
         return null;
     }
