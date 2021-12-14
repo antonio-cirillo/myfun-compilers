@@ -2,6 +2,7 @@ package it.unisa.nodes;
 
 import it.unisa.nodes.expr.Identifier;
 import it.unisa.nodes.interfaces.Lineable;
+import it.unisa.nodes.interfaces.PointedTable;
 import it.unisa.nodes.stat.Stat;
 import it.unisa.nodes.var.ParamDeclOp;
 import it.unisa.nodes.var.TypeOp;
@@ -13,7 +14,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 
 public class FunOp
-        extends DefaultMutableTreeNode implements Lineable {
+        extends DefaultMutableTreeNode implements Lineable, PointedTable<RowMethod> {
 
     public FunOp(String id, ArrayList<ParamDeclOp> paramDeclList,
                  String type, ArrayList<VarDeclOp> varDeclList, ArrayList<Stat> statList) {
@@ -62,10 +63,12 @@ public class FunOp
         return (BodyOp) super.getChildAt(super.getChildCount() - 1);
     }
 
+    @Override
     public RowMethod getPointerToRow() {
         return row;
     }
 
+    @Override
     public void setPointerToRow(RowMethod row) {
         this.row = row;
     }
