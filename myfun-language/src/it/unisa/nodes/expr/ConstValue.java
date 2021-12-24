@@ -10,6 +10,7 @@ public class ConstValue extends Expr {
         this.value = value;
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

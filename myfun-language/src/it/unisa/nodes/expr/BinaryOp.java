@@ -12,6 +12,7 @@ public class BinaryOp extends Expr {
         this.expr2 = expr2;
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

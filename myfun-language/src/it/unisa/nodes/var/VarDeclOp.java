@@ -1,11 +1,13 @@
 package it.unisa.nodes.var;
 
+import it.unisa.nodes.interfaces.Visitable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 
-public class VarDeclOp extends DefaultMutableTreeNode {
+public class VarDeclOp
+        extends DefaultMutableTreeNode implements Visitable {
 
     public VarDeclOp(String type, ArrayList<DefaultMutableTreeNode> idList) {
         super("VarDeclOp");
@@ -15,6 +17,7 @@ public class VarDeclOp extends DefaultMutableTreeNode {
         this.idList = idList;
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

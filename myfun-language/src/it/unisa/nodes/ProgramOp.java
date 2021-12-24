@@ -1,12 +1,14 @@
 package it.unisa.nodes;
 
+import it.unisa.nodes.interfaces.Visitable;
 import it.unisa.nodes.var.VarDeclOp;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 
-public class ProgramOp extends DefaultMutableTreeNode {
+public class ProgramOp
+        extends DefaultMutableTreeNode implements Visitable {
 
     public ProgramOp(ArrayList<VarDeclOp> varDeclList, ArrayList<FunOp> funList, BodyOp main) {
         super("ProgramOp");
@@ -23,6 +25,7 @@ public class ProgramOp extends DefaultMutableTreeNode {
         this.funList = funList;
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

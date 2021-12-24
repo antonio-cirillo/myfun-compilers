@@ -12,6 +12,7 @@ public class Identifier
         this.lexeme = lexeme;
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

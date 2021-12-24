@@ -1,11 +1,13 @@
 package it.unisa.nodes.var;
 
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.nodes.interfaces.Visitable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class ParamDeclOp extends DefaultMutableTreeNode {
+public class ParamDeclOp
+        extends DefaultMutableTreeNode implements Visitable {
 
     public ParamDeclOp(String type, String id) {
         super("ParamDeclOp");
@@ -21,6 +23,7 @@ public class ParamDeclOp extends DefaultMutableTreeNode {
         super.add(new Identifier(id));
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

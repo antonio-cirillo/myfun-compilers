@@ -2,11 +2,13 @@ package it.unisa.nodes.var;
 
 import it.unisa.nodes.expr.Expr;
 import it.unisa.nodes.expr.Identifier;
+import it.unisa.nodes.interfaces.Visitable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class IdInitOp extends DefaultMutableTreeNode {
+public class IdInitOp
+        extends DefaultMutableTreeNode implements Visitable {
 
     public IdInitOp(String id, Expr expr) {
         super("IdInitOp");
@@ -14,6 +16,7 @@ public class IdInitOp extends DefaultMutableTreeNode {
         super.add(expr);
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }

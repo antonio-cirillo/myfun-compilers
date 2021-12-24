@@ -1,17 +1,19 @@
 package it.unisa.nodes.expr;
 
 import it.unisa.nodes.interfaces.Lineable;
+import it.unisa.nodes.interfaces.Visitable;
 import it.unisa.visitors.Visitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class Expr
-        extends DefaultMutableTreeNode implements Lineable {
+        extends DefaultMutableTreeNode implements Visitable, Lineable {
 
     public Expr(String expr) {
         super(expr);
     }
 
+    @Override
     public Object accept(Visitor visitor) throws Exception {
         return visitor.visit(this);
     }
