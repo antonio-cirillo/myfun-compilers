@@ -16,6 +16,13 @@ public class SymbolTable {
         }
     }
 
+    public static class ReturnMismatch extends Exception {
+        public ReturnMismatch(int line, String type, String typeAssigned) {
+            super("Error at line: " + line + ".\nType Mismatch for return. " +
+                    "Required type: '" + type + "', provided: '" + typeAssigned + "'.");
+        }
+    }
+
     public static class LexemeAlreadyDefined extends Exception {
         public LexemeAlreadyDefined(int line, String lexeme, int lineAssigned) {
             super("Error at line: " + line + ".\n'" + lexeme +

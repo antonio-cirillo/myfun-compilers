@@ -231,7 +231,10 @@ Stat                    ::= IfStat:ifStat
                             RESULT.setLine(sym.left);
                         :}
                         |   RETURN Expr:expr
-                        {:  RESULT = new ReturnOp(expr); :}
+                        {:  RESULT = new ReturnOp(expr);
+                            Symbol sym = (Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1);
+                            RESULT.setLine(sym.left);
+                        :}
 ;
 
 IfStat                  ::= IF Expr:expr THEN VarDeclList:varDeclList StatList:statList Else:elseBody END IF

@@ -57,8 +57,7 @@ public class SemanticVisitor implements Visitor {
             String type = ARITMETIC_TYPE[typeToInt(typeArg1)][typeToInt(typeArg2)];
             if (type == null) {
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
-            }
-            else {
+            } else {
                 return type;
             }
         }
@@ -68,8 +67,7 @@ public class SemanticVisitor implements Visitor {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
                 if (typeArg2.equals("integer") || typeArg2.equals("real")) {
                     return "real";
-                }
-                else {
+                } else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
                 }
             } else {
@@ -82,8 +80,7 @@ public class SemanticVisitor implements Visitor {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
                 if (typeArg2.equals("integer") || typeArg2.equals("real")) {
                     return "integer";
-                }
-                else {
+                } else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
                 }
             } else {
@@ -239,22 +236,22 @@ public class SemanticVisitor implements Visitor {
         // Entro nello scope dell'if
         SymbolTable.enterScope();
         // Gestisco lo scope dell'if
-        ifOp.getIfBody().accept(this);
+        ArrayList<Object> results = (ArrayList<Object>) ifOp.getIfBody().accept(this);
         // Esco dallo scope dell'if
         SymbolTable.exitScope();
 
         // Se l'else non è presente termino i controlli
         if (ifOp.getElseBody() == null)
-            return null;
+            return results;
 
         // Entro nello scope dell'else
         SymbolTable.enterScope();
         // Gestisco lo scope dell'else
-        ifOp.getElseBody().accept(this);
+        results.addAll((ArrayList<Object>) ifOp.getElseBody().accept(this));
         // Esco dallo scope dell'else
         SymbolTable.exitScope();
 
-        return null;
+        return results;
     }
 
     @Override
@@ -263,7 +260,7 @@ public class SemanticVisitor implements Visitor {
     public Object visit(ReadOp readOp) throws Exception {
         for (Identifier id : readOp.getIdList())
             id.accept(this);
-        if(readOp.getExpr() != null) {
+        if (readOp.getExpr() != null) {
             String type = (String) readOp.getExpr().accept(this);
             if (type.equals("string"))
                 return null;
@@ -276,7 +273,10 @@ public class SemanticVisitor implements Visitor {
     @Override
     // Restituisce il tipo restituito dall'operazione di return
     public Object visit(ReturnOp returnOp) throws Exception {
-        return returnOp.getExpr().accept(this);
+        ArrayList<Object> results = new ArrayList<>();
+        results.add(returnOp.getExpr().accept(this));
+        results.add(returnOp.getLine());
+        return results;
     }
 
     @Override
@@ -313,11 +313,11 @@ public class SemanticVisitor implements Visitor {
         // Entro nello scope del while
         SymbolTable.enterScope();
         // Gestisco lo scope del while
-        whileOp.getBody().accept(this);
+        ArrayList<Object> results = (ArrayList<Object>) whileOp.getBody().accept(this);
         // Esco dallo scope del while
         SymbolTable.exitScope();
 
-        return null;
+        return results;
     }
 
     @Override
@@ -414,6 +414,8 @@ public class SemanticVisitor implements Visitor {
     @Override
     // Gestisce lo scope del Body
     public Object visit(BodyOp bodyOp) throws Exception {
+        ArrayList<Object> types = new ArrayList<>();
+
         ArrayList<VarDeclOp> varDeclList = bodyOp.getVarDeclList();
         if (varDeclList != null && varDeclList.size() > 0) {
             for (VarDeclOp varDecl : varDeclList) {
@@ -424,11 +426,20 @@ public class SemanticVisitor implements Visitor {
         ArrayList<Stat> statList = bodyOp.getStatList();
         if (statList != null && statList.size() > 0) {
             for (Stat stat : statList) {
-                stat.accept(this);
+                if (stat instanceof ReturnOp) {
+                    ArrayList<Object> result = (ArrayList<Object>) stat.accept(this);
+                    if (result != null) {
+                        if (result.get(0) instanceof ArrayList)
+                            types.addAll(result);
+                        else
+                            types.add(result);
+                    }
+                } else
+                    stat.accept(this);
             }
         }
 
-        return null;
+        return types;
     }
 
     @Override
@@ -472,7 +483,14 @@ public class SemanticVisitor implements Visitor {
         }
 
         // Gestisco lo scope del corpo della funzione
-        funOp.getBody().accept(this);
+        ArrayList<Object> results = (ArrayList<Object>) funOp.getBody().accept(this);
+        for (Object returns : results) {
+            String t = (String) ((ArrayList<Object>) returns).get(0);
+            if (!type.equals(t))
+                throw new SymbolTable.ReturnMismatch(
+                        (int) ((ArrayList<Object>) returns).get(1),
+                        type, t);
+        }
 
         // Esco dallo scope della funzione
         SymbolTable.exitScope();
@@ -519,7 +537,7 @@ public class SemanticVisitor implements Visitor {
     }
 
     private String generateSignature(String lexeme, ArrayList<ModeOp> paramsMode,
-                               ArrayList<Expr> paramsType) throws Exception {
+                                     ArrayList<Expr> paramsType) throws Exception {
         String string = lexeme + "(";
         if (paramsType != null && paramsType.size() > 0) {
             for (int i = 0; i < paramsMode.size(); i++)
