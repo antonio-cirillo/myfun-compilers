@@ -382,7 +382,8 @@ public class SemanticVisitor implements Visitor {
                 // Salvo il nome della variabile
                 String lexeme = ((Identifier) id).getLexeme();
                 // Inserisco il lessema all'interno della symbol table
-                SymbolTable.addId(lexeme, type, ((Identifier) id).getLine());
+                ((Identifier) id).setPointerToRow(
+                        SymbolTable.addId(lexeme, type, ((Identifier) id).getLine()));
             }
             // Se la variabile dichiarata è inizializzata
             else if (id instanceof IdInitOp) {
@@ -395,10 +396,12 @@ public class SemanticVisitor implements Visitor {
                 // Se la dichiarazione è var allora la variabile avra il tipo corrispondete al tipo dell'assegnazione
                 // Se il tipo dichiarato corrisponde al tipo assegnato effettuo la stessa operazione
                 if (type.equals(typeAssigned))
-                    SymbolTable.addId(lexeme, typeAssigned, line);
+                    ((IdInitOp) id).getId().setPointerToRow(
+                            SymbolTable.addId(lexeme, typeAssigned, line));
                 else if (type.equals("var")) {
-                    SymbolTable.addId(lexeme, typeAssigned, line);
-                    varDeclOp.setType(typeAssigned);
+                    ((IdInitOp) id).getId().setPointerToRow(
+                            SymbolTable.addId(lexeme, typeAssigned, line));
+                    ((IdInitOp) id).getId().getPointerToRow().setType(typeAssigned);
                 }
                 // Se il tipo assegnato non corrisponde al tipo della variabile lancio un'eccezione
                 else

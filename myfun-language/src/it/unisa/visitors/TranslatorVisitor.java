@@ -101,7 +101,13 @@ public class TranslatorVisitor implements Visitor {
     @Override
     // Scrive il valore della costante
     public Object visit(ConstValue constValue) throws Exception {
-        fileWriter.write(constValue.getValue());
+        if (constValue.getType().equals("string")) {
+            fileWriter.write("\"");
+            fileWriter.write(constValue.getValue());
+            fileWriter.write("\"");
+        } else
+            fileWriter.write(constValue.getValue());
+
         return null;
     }
 
@@ -317,6 +323,12 @@ public class TranslatorVisitor implements Visitor {
         String type = writeOp.getType();
         if (type.equals("writeln"))
             fileWriter.write("\t".repeat(currentTab) + "printf(\"\\n\");");
+        else if (type.equals("writeb"))
+            fileWriter.write("\t".repeat(currentTab) + "printf(\"\\n\");");
+        else if (type.equals("writet"))
+            fileWriter.write("\t".repeat(currentTab) + "printf(\"\\t\");");
+
+        fileWriter.write("\n");
 
         return null;
     }
@@ -326,13 +338,7 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(IdInitOp idInitOp) throws Exception {
         idInitOp.getId().accept(this);
         fileWriter.write(" = ");
-        if (idInitOp.getExpr() instanceof ConstValue
-                && ((ConstValue) idInitOp.getExpr()).getType().equals("string")) {
-            fileWriter.write("\"");
-            idInitOp.getExpr().accept(this);
-            fileWriter.write("\"");
-        } else
-            idInitOp.getExpr().accept(this);
+        idInitOp.getExpr().accept(this);
 
         return null;
     }
@@ -368,28 +374,26 @@ public class TranslatorVisitor implements Visitor {
     @Override
     // Gestione della dichiarazione di variabili
     public Object visit(VarDeclOp varDeclOp) throws Exception {
-        fileWriter.write("\t".repeat(currentTab));
-        varDeclOp.getType().accept(this);
-        fileWriter.write(" ");
-
         ArrayList<DefaultMutableTreeNode> idList = varDeclOp.getIdList();
         int i = 0;
 
-        for (; i < idList.size() - 1; i++) {
+        for (; i < idList.size(); i++) {
             DefaultMutableTreeNode id = idList.get(i);
-            if (id instanceof Identifier)
+            if (id instanceof Identifier) {
+                fileWriter.write("\t".repeat(currentTab));
+                fileWriter.write(
+                        convertType(((Identifier) id).getPointerToRow().getType()));
+                fileWriter.write(" ");
                 ((Identifier) id).accept(this);
-            if (id instanceof IdInitOp)
+            } if (id instanceof IdInitOp) {
+                fileWriter.write("\t".repeat(currentTab));
+                fileWriter.write(
+                        convertType(((IdInitOp) id).getId().getPointerToRow().getType()));
+                fileWriter.write(" ");
                 ((IdInitOp) id).accept(this);
-            fileWriter.write(", ");
+            }
+            fileWriter.write(";\n");
         }
-
-        DefaultMutableTreeNode id = idList.get(i);
-        if (id instanceof Identifier)
-            ((Identifier) id).accept(this);
-        if (id instanceof IdInitOp)
-            ((IdInitOp) id).accept(this);
-        fileWriter.write(";\n");
 
         return null;
     }
@@ -534,9 +538,7 @@ public class TranslatorVisitor implements Visitor {
 
     private void writeExprInString(Expr expr) throws Exception {
         if (expr instanceof ConstValue) {
-            fileWriter.write("\"");
             expr.accept(this);
-            fileWriter.write("\"");
         } else if (expr instanceof CallFunOpExpr) {
             String typeReturned = ((CallFunOpExpr) expr).getPointerToRow().getReturnType();
             if (typeReturned.equals("integer"))
