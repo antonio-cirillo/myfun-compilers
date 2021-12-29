@@ -1,0 +1,21 @@
+fun modify(out string s)
+    s := "Global update";
+    ?. "Inside modify: " & s;
+end fun;
+
+fun modify(string s)
+    s := "Local update";
+    ?. "Inside modify: " & s;
+end fun;
+
+main
+    var s := "This is my string";
+
+    ?. "Before local update: " & s;
+    modify(s);
+    ?. "After local update: " & s;
+
+    ?. "Before global update: " & s;
+    modify(@s);
+    ?. "After global update: " & s;
+end main;
