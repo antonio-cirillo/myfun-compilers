@@ -94,13 +94,6 @@ public class SymbolTable {
         }
     }
 
-    public static class StringConcatNotDefined extends Exception {
-        public StringConcatNotDefined(int line) {
-            super("Error at line: " + line + ".\nString concatenation can be applied " +
-                    "between variables, functions and constants.");
-        }
-    }
-
     public static class VarAreNotDefined extends Exception {
         public VarAreNotDefined(int line, String lexeme) {
             super("Error at line: " + line + ".\nVar '" + lexeme +

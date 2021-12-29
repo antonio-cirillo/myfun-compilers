@@ -9,12 +9,8 @@
     utilizzare tutte le caratteristiche del linguaggio.
 #
 
-var $STOP := 0;
-var $SHOWMENU := 1;
-var $ADD := 2;
-var $MINUS := 3;
-var $TIMES := 4;
-var $DIV := 5;
+var $STOP := 0, $SHOWMENU := 1, $ADD := 2,
+    $MINUS := 3, $TIMES := 4, $DIV := 5;
 
 fun visualizzaMenu(): string
 
@@ -50,52 +46,47 @@ main
 
     integer result := 0;
     integer input;
+    var $ERROR := "Valore di input non riconosciuto.";
 
     % input visualizzaMenu();
 
-    while true loop
-        if input = $STOP then
-            return 0;
+    while input != 0 loop
+        if input = $SHOWMENU then
+            % input visualizzaMenu();
         else
-            if input = $SHOWMENU then
-                % input visualizzaMenu();
+            if input = $ADD then
+                integer x, y;
+                % x, y "Inserisci i due numeri:\t";
+                ?. x & " + " & y & " = " & somma(x, y);
+                % input "Scegli un'altra operazione: ";
             else
-                if input = $ADD then
+                if input = $MINUS then
                     integer x, y;
                     % x, y "Inserisci i due numeri:\t";
-                    ?. x & " + " & y & " = " & somma(x, y);
-                    % input "Scegli un'altra operazione: ";
+                    ?. x & " - " & y & " = " & sottrazione(x, y);
+                     % input "Scegli un'altra operazione: ";
                 else
-                    if input = $MINUS then
+                    if input = $TIMES then
                         integer x, y;
                         % x, y "Inserisci i due numeri:\t";
-                        ?. x & " - " & y & " = " & sottrazione(x, y);
+                        moltiplicazione(x, y, @result);
+                        ?. x & " * " & y & " = " & result;
                         % input "Scegli un'altra operazione: ";
                     else
-                        if input = $TIMES then
+                        if input = $DIV then
                             integer x, y;
                             % x, y "Inserisci i due numeri:\t";
-                            moltiplicazione(x, y, @result);
-                            ?. x & " * " & y & " = " & result;
+                            divisione(x, y, @result);
+                            ?. x & " div " & y & " = " & result;
                             % input "Scegli un'altra operazione: ";
                         else
-                            if input = $DIV then
-                                integer x, y;
-                                % x, y "Inserisci i due numeri:\t";
-                                divisione(x, y, @result);
-                                ?. x & " div " & y & " = " & result;
-                                % input "Scegli un'altra operazione: ";
-                            else
-                                string error := "Valore di input non riconosciuto.";
-                                ?. error;
-                                % input "Scegli un'operazione riconosciuta: ";
-                            end if;
+                            ?. $ERROR;
+                            % input "Scegli un'operazione riconosciuta: ";
                         end if;
                     end if;
                 end if;
             end if;
         end if;
-
     end loop;
 
 end main;

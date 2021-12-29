@@ -24,25 +24,10 @@ public class SemanticVisitor implements Visitor {
         // Controllo sulla concatenazione di stringhe
         if (op.equals("StrCatOp")) {
             Expr expr1 = binaryOp.getExpr1();
-            if (expr1 instanceof UnaryOp)
-                throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
-            else if (expr1 instanceof BinaryOp) {
-                if (expr1.toString().equals("StrCatOp"))
-                    expr1.accept(this);
-                else throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
-            } else
-                expr1.accept(this);
-
+            expr1.accept(this);
             Expr expr2 = binaryOp.getExpr2();
-            if (expr2 instanceof UnaryOp)
-                throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
-            else if (expr2 instanceof BinaryOp) {
-                if (expr2.toString().equals("StrCatOp"))
-                    expr2.accept(this);
-                else throw new SymbolTable.StringConcatNotDefined(binaryOp.getLine());
-            } else
-                expr2.accept(this);
-
+            expr2.accept(this);
+            binaryOp.setType("string");
             return "string";
         }
 
@@ -58,6 +43,7 @@ public class SemanticVisitor implements Visitor {
             if (type == null) {
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
             } else {
+                binaryOp.setType(type);
                 return type;
             }
         }
@@ -66,6 +52,7 @@ public class SemanticVisitor implements Visitor {
         if (op.equals("PowOp")) {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
                 if (typeArg2.equals("integer") || typeArg2.equals("real")) {
+                    binaryOp.setType("real");
                     return "real";
                 } else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
@@ -79,6 +66,7 @@ public class SemanticVisitor implements Visitor {
         if (op.equals("DivIntOp")) {
             if (typeArg1.equals("integer") || typeArg1.equals("real")) {
                 if (typeArg2.equals("integer") || typeArg2.equals("real")) {
+                    binaryOp.setType("integer");
                     return "integer";
                 } else {
                     throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
@@ -88,22 +76,24 @@ public class SemanticVisitor implements Visitor {
             }
         }
 
-
         // Controllo sulle operazioni di relazione
         if (op.equals("EQOp") || op.equals("LTOp") || op.equals("LEOp") || op.equals("NEOp") ||
                 op.equals("GTOp") || op.equals("GEOp")) {
             String type = RELATION_TYPE[typeToInt(typeArg1)][typeToInt(typeArg2)];
             if (type == null)
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
-            else
+            else {
+                binaryOp.setType(type);
                 return type;
+            }
         }
 
         // Controllo sulle operazioni logiche
         if (op.equals("AndOp") || op.equals("OrOp")) {
-            if (typeArg1.equals("bool") && typeArg2.equals("bool"))
+            if (typeArg1.equals("bool") && typeArg2.equals("bool")) {
+                binaryOp.setType("bool");
                 return "bool";
-            else
+            } else
                 throw new SymbolTable.OperationNotDefined(binaryOp.getLine(), op, typeArg1, typeArg2);
         }
 
@@ -174,16 +164,18 @@ public class SemanticVisitor implements Visitor {
 
         // Controllo sull'operazioen di uminus
         if (op.equals("UminusOp")) {
-            if (typeArg.equals("integer") || typeArg.equals("real"))
+            if (typeArg.equals("integer") || typeArg.equals("real")) {
+                unaryOp.setType(typeArg);
                 return typeArg;
-            else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
+            } else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
         }
 
         // Controllo sull'operazione di not
         if (op.equals("NotOp")) {
-            if (typeArg.equals("bool"))
+            if (typeArg.equals("bool")) {
+                unaryOp.setType("bool");
                 return "bool";
-            else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
+            } else throw new SymbolTable.OperationNotDefined(unaryOp.getLine(), op, typeArg);
         }
 
         return null;
@@ -559,7 +551,7 @@ public class SemanticVisitor implements Visitor {
     private static final String[][] RELATION_TYPE = {
             {"bool", "bool", null, null},
             {"bool", "bool", null, null},
-            {null, null, null, null},
+            {null, null, "bool", null},
             {null, null, null, null}
     };
 

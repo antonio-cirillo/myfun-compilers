@@ -18,11 +18,14 @@ public class TranslatorVisitor implements Visitor {
     public Object visit(BinaryOp binaryOp) throws Exception {
         String typeOp = binaryOp.toString();
 
+        fileWriter.write("(");
+
         if (typeOp.equals("StrCatOp")) {
             fileWriter.write("concat_string(");
             writeExprInString(binaryOp.getExpr1());
             fileWriter.write(", ");
             writeExprInString(binaryOp.getExpr2());
+            fileWriter.write(")");
             fileWriter.write(")");
 
             return null;
@@ -34,11 +37,40 @@ public class TranslatorVisitor implements Visitor {
             fileWriter.write(", ");
             binaryOp.getExpr2().accept(this);
             fileWriter.write(")");
+            fileWriter.write(")");
 
             return null;
         }
 
-        fileWriter.write("(");
+        if ((binaryOp.getExpr1() instanceof Identifier &&
+                ((Identifier) binaryOp.getExpr1()).getPointerToRow().getType().equals("string")) ||
+                (binaryOp.getExpr1() instanceof ConstValue &&
+                        ((ConstValue) binaryOp.getExpr1()).getType().equals("string"))) {
+            fileWriter.write("strcmp(");
+            binaryOp.getExpr1().accept(this);
+            fileWriter.write(", ");
+            binaryOp.getExpr2().accept(this);
+            fileWriter.write(")");
+
+            if (typeOp.equals("LTOp"))
+                fileWriter.write(" < ");
+            else if (typeOp.equals("LEOp"))
+                fileWriter.write(" <= ");
+            else if (typeOp.equals("GTOp"))
+                fileWriter.write(" > ");
+            else if (typeOp.equals("GEOp"))
+                fileWriter.write(" >= ");
+            else if (typeOp.equals("EQOp"))
+                fileWriter.write(" == ");
+            else if (typeOp.equals("NEOp"))
+                fileWriter.write(" != ");
+
+            fileWriter.write("1");
+            fileWriter.write(")");
+
+            return null;
+        }
+
         binaryOp.getExpr1().accept(this);
 
         if (typeOp.equals("AddOp"))
@@ -147,9 +179,9 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("(");
 
         if (typeOp.equals("UminusOp"))
-            fileWriter.write(" - ");
+            fileWriter.write(" -");
         else
-            fileWriter.write(" ! ");
+            fileWriter.write(" !");
 
         unaryOp.getExpr().accept(this);
         fileWriter.write(")");
@@ -161,9 +193,18 @@ public class TranslatorVisitor implements Visitor {
     // Scrivo il codice relativo all'assegnazione
     public Object visit(AssignOp assignOp) throws Exception {
         fileWriter.write("\t".repeat(currentTab));
-        assignOp.getId().accept(this);
-        fileWriter.write(" = ");
-        assignOp.getExpr().accept(this);
+
+        if (assignOp.getId().getPointerToRow().getType().equals("string")) {
+            fileWriter.write("strcpy(");
+            assignOp.getId().accept(this);
+            fileWriter.write(", ");
+            assignOp.getExpr().accept(this);
+            fileWriter.write(")");
+        } else {
+            assignOp.getId().accept(this);
+            fileWriter.write(" = ");
+            assignOp.getExpr().accept(this);
+        }
         fileWriter.write(";\n");
 
         return null;
@@ -230,37 +271,27 @@ public class TranslatorVisitor implements Visitor {
             fileWriter.write(");\n");
         }
 
-        fileWriter.write("\t".repeat(currentTab) + "scanf(\"");
-
         int i = 0;
         ArrayList<Identifier> idList = readOp.getIdList();
-        for (; i < idList.size() - 1; i++) {
+        for (; i < idList.size(); i++) {
             String type = convertType(idList.get(i).getPointerToRow().getType());
-            if (type.equals("int") || type.equals("bool"))
-                fileWriter.write("%d ");
-            else if (type.equals("double"))
-                fileWriter.write("%lf ");
-            else if (type.equals("string"))
-                fileWriter.write("%s ");
+            if (type.equals("int") || type.equals("bool")) {
+                fileWriter.write("\t".repeat(currentTab) + "scanf(\"%d\", &");
+                idList.get(i).accept(this);
+            } else if (type.equals("double")) {
+                fileWriter.write("\t".repeat(currentTab) + "scanf(\"%lf\", &");
+                idList.get(i).accept(this);
+            } else if (type.equals("char*")) {
+                fileWriter.write("\t".repeat(currentTab) + "fgets(");
+                idList.get(i).accept(this);
+                fileWriter.write(", sizeof(");
+                idList.get(i).accept(this);
+                fileWriter.write("), stdin");
+            }
+            fileWriter.write(");\n");
+            fileWriter.write("\t".repeat(currentTab));
+            fileWriter.write("fflush(stdin);\n");
         }
-        String type = convertType(idList.get(i).getPointerToRow().getType());
-        if (type.equals("int") || type.equals("bool"))
-            fileWriter.write("%d\", ");
-        else if (type.equals("double"))
-            fileWriter.write("%lf\", ");
-        else if (type.equals("string"))
-            fileWriter.write("%s\", ");
-
-        i = 0;
-        for (; i < idList.size() - 1; i++) {
-            fileWriter.write("&");
-            idList.get(i).accept(this);
-            fileWriter.write(", ");
-        }
-
-        fileWriter.write("&");
-        idList.get(i).accept(this);
-        fileWriter.write(");\n");
 
         return null;
     }
@@ -324,7 +355,7 @@ public class TranslatorVisitor implements Visitor {
         if (type.equals("writeln"))
             fileWriter.write("\t".repeat(currentTab) + "printf(\"\\n\");");
         else if (type.equals("writeb"))
-            fileWriter.write("\t".repeat(currentTab) + "printf(\"\\n\");");
+            fileWriter.write("\t".repeat(currentTab) + "printf(\" \");");
         else if (type.equals("writet"))
             fileWriter.write("\t".repeat(currentTab) + "printf(\"\\t\");");
 
@@ -336,9 +367,17 @@ public class TranslatorVisitor implements Visitor {
     @Override
     // Scrive l'inizializzazione di una varaibile
     public Object visit(IdInitOp idInitOp) throws Exception {
-        idInitOp.getId().accept(this);
-        fileWriter.write(" = ");
-        idInitOp.getExpr().accept(this);
+        if (idInitOp.getId().getPointerToRow().getType().equals("string")) {
+            fileWriter.write("strcpy(");
+            idInitOp.getId().accept(this);
+            fileWriter.write(", ");
+            idInitOp.getExpr().accept(this);
+            fileWriter.write(")");
+        } else {
+            idInitOp.getId().accept(this);
+            fileWriter.write(" = ");
+            idInitOp.getExpr().accept(this);
+        }
 
         return null;
     }
@@ -385,11 +424,20 @@ public class TranslatorVisitor implements Visitor {
                         convertType(((Identifier) id).getPointerToRow().getType()));
                 fileWriter.write(" ");
                 ((Identifier) id).accept(this);
-            } if (id instanceof IdInitOp) {
+                if (((Identifier) id).getPointerToRow().getType().equals("string")) {
+                    fileWriter.write(" = malloc(sizeof(char) * MAXCHAR)");
+                }
+            }
+            if (id instanceof IdInitOp) {
                 fileWriter.write("\t".repeat(currentTab));
                 fileWriter.write(
                         convertType(((IdInitOp) id).getId().getPointerToRow().getType()));
                 fileWriter.write(" ");
+                if (((IdInitOp) id).getId().getPointerToRow().getType().equals("string")) {
+                    (((IdInitOp) id).getId()).accept(this);
+                    fileWriter.write(" = malloc(sizeof(char) * MAXCHAR);\n");
+                    fileWriter.write("\t".repeat(currentTab));
+                }
                 ((IdInitOp) id).accept(this);
             }
             fileWriter.write(";\n");
@@ -467,6 +515,7 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("#include <string.h>\n");
         fileWriter.write("#include <math.h>\n");
         fileWriter.write("#include <stdbool.h>\n");
+        fileWriter.write("\n#define MAXCHAR 512\n");
 
         fileWriter.write("\n");
 
@@ -492,7 +541,7 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("}\n\n");
 
         fileWriter.write("char* concat_string(char* str1, char* str2) {\n");
-        fileWriter.write("\tchar* buffer = malloc(sizeof(char) * 10000000);\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char) * MAXCHAR);\n");
         fileWriter.write(("\t*buffer = '\\0';\n"));
         fileWriter.write(("\tstrcat(buffer, str1);\n"));
         fileWriter.write(("\tstrcat(buffer, str2);\n"));
@@ -537,7 +586,29 @@ public class TranslatorVisitor implements Visitor {
     }
 
     private void writeExprInString(Expr expr) throws Exception {
-        if (expr instanceof ConstValue) {
+        if (expr instanceof UnaryOp) {
+            String type = ((UnaryOp) expr).getType();
+            if (type.equals("integer"))
+                fileWriter.write("int_to_string(");
+            else if (type.equals("real"))
+                fileWriter.write("double_to_string(");
+            else if (type.equals("bool"))
+                fileWriter.write("bool_to_string(");
+            expr.accept(this);
+            if (!type.equals("string"))
+                fileWriter.write(")");
+        } else if (expr instanceof BinaryOp) {
+            String type = ((BinaryOp) expr).getType();
+            if (type.equals("integer"))
+                fileWriter.write("int_to_string(");
+            else if (type.equals("real"))
+                fileWriter.write("double_to_string(");
+            else if (type.equals("bool"))
+                fileWriter.write("bool_to_string(");
+            expr.accept(this);
+            if (!type.equals("string"))
+                fileWriter.write(")");
+        } else if (expr instanceof ConstValue) {
             expr.accept(this);
         } else if (expr instanceof CallFunOpExpr) {
             String typeReturned = ((CallFunOpExpr) expr).getPointerToRow().getReturnType();

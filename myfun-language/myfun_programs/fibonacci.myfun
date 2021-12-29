@@ -2,7 +2,7 @@ fun fibonacci(integer number): integer
     if number = 0 or number = 1 then
         return number;
     else
-        return number + fibonacci(number - 1);
+        return fibonacci(number - 1) + fibonacci(number - 2);
     end if;
 end fun;
 

@@ -25,10 +25,19 @@ public class BinaryOp extends Expr {
         return expr2;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String toString() {
         return super.toString();
     }
 
     private Expr expr1, expr2;
+    private String type;
 
 }
