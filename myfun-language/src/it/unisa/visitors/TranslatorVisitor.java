@@ -65,7 +65,7 @@ public class TranslatorVisitor implements Visitor {
             else if (typeOp.equals("NEOp"))
                 fileWriter.write(" != ");
 
-            fileWriter.write("1");
+            fileWriter.write("0");
             fileWriter.write(")");
 
             return null;
@@ -282,11 +282,8 @@ public class TranslatorVisitor implements Visitor {
                 fileWriter.write("\t".repeat(currentTab) + "scanf(\"%lf\", &");
                 idList.get(i).accept(this);
             } else if (type.equals("char*")) {
-                fileWriter.write("\t".repeat(currentTab) + "fgets(");
+                fileWriter.write("\t".repeat(currentTab) + "scanf(\"%s\", ");
                 idList.get(i).accept(this);
-                fileWriter.write(", sizeof(");
-                idList.get(i).accept(this);
-                fileWriter.write("), stdin");
             }
             fileWriter.write(");\n");
             fileWriter.write("\t".repeat(currentTab));
@@ -639,7 +636,7 @@ public class TranslatorVisitor implements Visitor {
 
     private static final String FILE_NAME = "c_gen.c";
     private static final File FILE = new File(
-            System.getProperty("user.dir") + "\\myfun_programs\\" + FILE_NAME);
+            System.getProperty("user.dir") + "/myfun_programs/" + FILE_NAME);
     private static FileWriter fileWriter;
     private static int currentTab = 0;
 

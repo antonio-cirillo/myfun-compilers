@@ -1,4 +1,5 @@
-// java -jar C:\CUP\java-cup-11b.jar -dump -destdir src srcjflexcup/fun.cup 2>srcjflexcup/dump
+// java -jar C:\CUP\java-cup-11b.jar -dump -destdir src srcjflexcup/fun.cup 2>srcjflexcup/dump Windows
+// java java_cup.Main -dump -destdir src srcjflexcup/fun.cup 2>srcjflexcup/dump // Ubuntu
 
 import it.unisa.nodes.*;
 import it.unisa.nodes.expr.*;

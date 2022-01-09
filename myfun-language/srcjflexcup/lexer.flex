@@ -1,4 +1,5 @@
-// C:/JFLEX/bin/jflex -d src srcjflexcup/lexer.flex
+// C:/JFLEX/bin/jflex -d src srcjflexcup/lexer.flex // Windows
+// jflex -d src srcjflexcup/lexer.flex // Ubuntu
 
 // User Code
 import java.util.HashMap;
