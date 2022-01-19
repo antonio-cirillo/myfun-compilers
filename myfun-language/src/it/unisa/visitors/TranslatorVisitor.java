@@ -81,6 +81,8 @@ public class TranslatorVisitor implements Visitor {
             fileWriter.write(" * ");
         else if (typeOp.equals("DivOp"))
             fileWriter.write(" / ");
+        else if (typeOp.equals("DivIntOp"))
+            fileWriter.write(" / ");
         else if (typeOp.equals("AndOp"))
             fileWriter.write(" && ");
         else if (typeOp.equals("OrOp"))
@@ -195,6 +197,11 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("\t".repeat(currentTab));
 
         if (assignOp.getId().getPointerToRow().getType().equals("string")) {
+            assignOp.getId().accept(this);
+            fileWriter.write(" = malloc(sizeof(char) * strlen(");
+            assignOp.getExpr().accept(this);
+            fileWriter.write("));\n");
+            fileWriter.write("\t".repeat(currentTab));
             fileWriter.write("strcpy(");
             assignOp.getId().accept(this);
             fileWriter.write(", ");
@@ -364,17 +371,9 @@ public class TranslatorVisitor implements Visitor {
     @Override
     // Scrive l'inizializzazione di una varaibile
     public Object visit(IdInitOp idInitOp) throws Exception {
-        if (idInitOp.getId().getPointerToRow().getType().equals("string")) {
-            fileWriter.write("strcpy(");
-            idInitOp.getId().accept(this);
-            fileWriter.write(", ");
-            idInitOp.getExpr().accept(this);
-            fileWriter.write(")");
-        } else {
-            idInitOp.getId().accept(this);
-            fileWriter.write(" = ");
-            idInitOp.getExpr().accept(this);
-        }
+        idInitOp.getId().accept(this);
+        fileWriter.write(" = ");
+        idInitOp.getExpr().accept(this);
 
         return null;
     }
@@ -430,11 +429,6 @@ public class TranslatorVisitor implements Visitor {
                 fileWriter.write(
                         convertType(((IdInitOp) id).getId().getPointerToRow().getType()));
                 fileWriter.write(" ");
-                if (((IdInitOp) id).getId().getPointerToRow().getType().equals("string")) {
-                    (((IdInitOp) id).getId()).accept(this);
-                    fileWriter.write(" = malloc(sizeof(char) * MAXCHAR);\n");
-                    fileWriter.write("\t".repeat(currentTab));
-                }
                 ((IdInitOp) id).accept(this);
             }
             fileWriter.write(";\n");
@@ -511,6 +505,7 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("#include <stdlib.h>\n");
         fileWriter.write("#include <string.h>\n");
         fileWriter.write("#include <math.h>\n");
+        fileWriter.write("#include <unistd.h>\n");
         fileWriter.write("#include <stdbool.h>\n");
         fileWriter.write("\n#define MAXCHAR 512\n");
 
@@ -563,6 +558,8 @@ public class TranslatorVisitor implements Visitor {
         programOp.getBody().accept(this);
 
         // Chiudo il main
+        fileWriter.write("\n\tprintf(\"\\nExecution finished. The program will close in three seconds.\\n\");\n");
+        fileWriter.write("\tsleep(3);\n\n");
         fileWriter.write("}");
         fileWriter.close();
 
@@ -606,7 +603,16 @@ public class TranslatorVisitor implements Visitor {
             if (!type.equals("string"))
                 fileWriter.write(")");
         } else if (expr instanceof ConstValue) {
+            String type = ((ConstValue) expr).getType();
+            if (type.equals("integer"))
+                fileWriter.write("int_to_string(");
+            else if (type.equals("real"))
+                fileWriter.write("double_to_string(");
+            else if (type.equals("bool"))
+                fileWriter.write("bool_to_string(");
             expr.accept(this);
+            if (!type.equals("string"))
+                fileWriter.write(")");
         } else if (expr instanceof CallFunOpExpr) {
             String typeReturned = ((CallFunOpExpr) expr).getPointerToRow().getReturnType();
             if (typeReturned.equals("integer"))
@@ -636,7 +642,7 @@ public class TranslatorVisitor implements Visitor {
 
     private static final String FILE_NAME = "c_gen.c";
     private static final File FILE = new File(
-            System.getProperty("user.dir") + "/myfun_programs/" + FILE_NAME);
+            System.getProperty("user.dir") + "\\myfun_programs\\" + FILE_NAME);
     private static FileWriter fileWriter;
     private static int currentTab = 0;
 

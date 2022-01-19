@@ -64,8 +64,8 @@ public class SemanticVisitor implements Visitor {
 
         // Controllo sull'operazione di divisione intera
         if (op.equals("DivIntOp")) {
-            if (typeArg1.equals("integer") || typeArg1.equals("real")) {
-                if (typeArg2.equals("integer") || typeArg2.equals("real")) {
+            if (typeArg1.equals("integer")) {
+                if (typeArg2.equals("integer")) {
                     binaryOp.setType("integer");
                     return "integer";
                 } else {
@@ -552,7 +552,7 @@ public class SemanticVisitor implements Visitor {
             {"bool", "bool", null, null},
             {"bool", "bool", null, null},
             {null, null, "bool", null},
-            {null, null, null, null}
+            {null, null, null, "bool"}
     };
 
 }
