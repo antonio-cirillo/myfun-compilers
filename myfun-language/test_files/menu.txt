@@ -1,0 +1,152 @@
+#*
+ Programma esemplificativo del linguaggio MyFun a volte volutamente ridondante.
+
+ Questo programma calcola e stampa la somma di due numeri, incrementata di 1.
+ Inoltre la definisce 'grande' se è superiore a 100 altrimenti 'piccola'
+
+#
+
+fun effettuaScelta(out integer scelta)
+
+    bool flag := true;
+
+    while flag = true loop
+
+        ?. "Menu': ";
+        ?. "1. Somma di due numeri. ";
+        ?. "2. Moltiplicazione di due numeri con somma. ";
+        ?. "3. Divisione intera tra due numeri positivi. ";
+        ?. "4. Scegli la potenza di 2. ";
+        ?. "5. La successione di Fibonacci. ";
+
+        % scelta 'inserisci uno dei numeri per effettuare la tua scelta';
+
+        if scelta < 1 or scelta > 5 then
+            ?. "Scelta non valida...";
+            ?. "Scegli di nuovo...";
+            ?. " ";
+            ?. " ";
+        else
+            flag := false;
+        end if;
+
+    end loop;
+
+end fun;
+
+fun sommaDiNumeri() : real
+
+    real num1 , num2 , risultato := 0.0;
+
+    % num1, num2 "Inserisci i due numeri da sommare: ";
+
+    risultato := num1 + num2;
+
+    return risultato;
+
+end fun;
+
+fun moltiplicazioneConSomma(integer primo, integer secondo,out integer risultato)
+
+    integer cont := 0;
+
+    while cont < secondo loop
+
+        risultato := risultato + primo;
+        cont := cont + 1;
+
+    end loop;
+
+end fun;
+
+fun divisioneIntera() : integer
+
+    integer divisore, dividendo;
+
+    % dividendo "Inserisci dividendo: ";
+    % divisore "Inserisci divisore: ";
+
+    return dividendo div divisore;
+
+end fun;
+
+fun elevaDue(real pot)
+
+    real ris := 2 ^ pot;
+    ?. "Il numero " & 2 & " elevato a " & pot & " e' uguale " & ris;
+
+end fun;
+
+fun fib (integer n) : integer
+
+    if n<= 1 then
+        return n;
+    end if;
+
+    return fib(n-1) + fib(n-2);
+
+end fun;
+
+main
+
+    string ans := "si";
+    integer scelta;
+    real risultatoSomma;
+
+    while ans = "si" loop
+
+    effettuaScelta(@scelta);
+
+    if scelta = 1 then
+        risultatoSomma := sommaDiNumeri();
+        ?. "Il risultato della somma e' " & risultatoSomma;
+
+    else
+
+        if scelta = 2 then
+
+            integer num1 , num2 , risultato := 0;
+            % num1, num2 "Inserisci due numeri interi da moltiplicare: ";
+            moltiplicazioneConSomma(num1 , num2 , @risultato);
+            ?. "Il risultato della moltiplicazione tra " & num1 & " e " & num2 & " e' " & risultato;
+
+        else
+
+            if scelta = 3 then
+
+                integer risultato;
+                risultato := divisioneIntera();
+                ?. "Il risultato intero della divisione e' " & risultato;
+
+             else
+
+
+                if scelta = 4 then
+
+                    real potenza;
+                    % potenza "Inserisci l'esponente da dare al numero due ";
+                    elevaDue(potenza);
+
+                else
+
+                    if scelta = 5 then
+
+                          integer numero;
+                          % numero "Quale numero della serie di fibonacci desideri conoscere? ";
+                          ?. "Il " & numero & "esimo della successione di Fibo e' " & fib(numero);
+
+                    end if;
+
+                end if;
+
+            end if;
+
+        end if;
+
+    end if;
+
+    % ans 'vuoi continuare? (si/no):\t';
+
+    end loop;
+
+end main;

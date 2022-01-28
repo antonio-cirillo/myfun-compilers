@@ -1,5 +1,4 @@
-// C:/JFLEX/bin/jflex -d src srcjflexcup/lexer.flex // Windows
-// jflex -d src srcjflexcup/lexer.flex // Ubuntu
+// C:/JFLEX/bin/jflex -d src/main/java srcjflexcup/lexer.flex
 
 // User Code
 import java.util.HashMap;
@@ -12,7 +11,7 @@ import java_cup.runtime.*;
 %column                         // Viene abilitato il contatore di colonne. Valore contenuto in yyycolumn
 %cup
 
-Identifier = [$_A-Za-z] [$_@A-Za-z0-9]*
+Identifier = [$_A-Za-z] [$_A-Za-z0-9]*
 
 IntLiteral = [0-9]+ (e-?[0-9]+)? | 0x[0-9a-f] | 0b[01]+
 RealLiteral = [0-9]+ \. [0-9]+ (e-?[0-9]+)?

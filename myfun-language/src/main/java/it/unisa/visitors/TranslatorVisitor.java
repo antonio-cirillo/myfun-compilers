@@ -10,6 +10,8 @@ import it.unisa.nodes.var.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class TranslatorVisitor implements Visitor {
@@ -289,8 +291,9 @@ public class TranslatorVisitor implements Visitor {
                 fileWriter.write("\t".repeat(currentTab) + "scanf(\"%lf\", &");
                 idList.get(i).accept(this);
             } else if (type.equals("char*")) {
-                fileWriter.write("\t".repeat(currentTab) + "scanf(\"%s\", ");
+                fileWriter.write("\t".repeat(currentTab));
                 idList.get(i).accept(this);
+                fileWriter.write(" = leggiStringa(");
             }
             fileWriter.write(");\n");
             fileWriter.write("\t".repeat(currentTab));
@@ -497,6 +500,10 @@ public class TranslatorVisitor implements Visitor {
     // Gestisco la traduzione del programma
     public Object visit(ProgramOp programOp) throws Exception {
         // Inizializzo il file di scrittura
+        if (!(new File("test_files" + File.separator + "c_out" + File.separator)).exists()) {
+            Files.createDirectory(Paths.get("test_files" + File.separator + "c_out" + File.separator));
+        }
+        FILE = new File("test_files" + File.separator + "c_out" + File.separator + FILE_NAME);
         FILE.createNewFile();
         fileWriter = new FileWriter(FILE);
 
@@ -529,6 +536,12 @@ public class TranslatorVisitor implements Visitor {
         fileWriter.write("\t\tbuffer = \"true\";\n");
         fileWriter.write("\telse\n");
         fileWriter.write("\t\tbuffer = \"false\";\n");
+        fileWriter.write("\treturn buffer;\n");
+        fileWriter.write("}\n\n");
+
+        fileWriter.write("char* leggiStringa() {\n");
+        fileWriter.write("\tchar* buffer = malloc(sizeof(char) * MAXCHAR);\n");
+        fileWriter.write("\tscanf(\"%s\", buffer);\n");
         fileWriter.write("\treturn buffer;\n");
         fileWriter.write("}\n\n");
 
@@ -640,9 +653,8 @@ public class TranslatorVisitor implements Visitor {
         }
     }
 
-    private static final String FILE_NAME = "c_gen.c";
-    private static final File FILE = new File(
-            System.getProperty("user.dir") + "\\myfun_programs\\" + FILE_NAME);
+    public static String FILE_NAME = "c_gen.c";
+    private static File FILE;
     private static FileWriter fileWriter;
     private static int currentTab = 0;
 

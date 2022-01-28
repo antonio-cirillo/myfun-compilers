@@ -3,30 +3,30 @@ import it.unisa.visitors.SemanticVisitor;
 import it.unisa.visitors.TranslatorVisitor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.util.Map;
-import java.util.Scanner;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Compiler {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println("Insert name of file: ");
-        Scanner scanner = new Scanner(System.in);
 
-        parser parser = new parser(new Yylex(new FileReader(
-                System.getProperty("user.dir") + "\\myfun_programs\\" + scanner.next())));
+        Path path = Paths.get(args[0]);
+        Path filename = path.getFileName();
+
+        parser parser = new parser(new Yylex(new FileReader(args[0])));
 
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) parser.parse().value;
         ((ProgramOp) root).accept(new SemanticVisitor());
+        TranslatorVisitor.FILE_NAME = filename.toString().substring(0, filename.toString().lastIndexOf('.')) + ".c";
         ((ProgramOp) root).accept(new TranslatorVisitor());
 
-        try {
+        /* Questa parte è stata commentata in quanto è dipendente dal sistema operativo Windwos
+            try {
 
             ProcessBuilder builder = new ProcessBuilder(
-                    "cmd", "/c", "cd myfun_programs && gcc c_gen.c");
+                    "cmd", "/c", "cd test_files && cd c_out && gcc " + TranslatorVisitor.FILE_NAME);
             builder.redirectErrorStream(true);
             Process process = builder.start();
             BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -40,7 +40,7 @@ public class Compiler {
             }
 
             builder = new ProcessBuilder(
-                    "cmd", "/c", "cd myfun_programs && start a.exe");
+                    "cmd", "/c", "cd test_files && cd c_out && start a.exe");
             builder.redirectErrorStream(true);
             process = builder.start();
             r = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -53,7 +53,7 @@ public class Compiler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        } */
 
     }
 

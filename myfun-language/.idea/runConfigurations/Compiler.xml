@@ -1,9 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Compiler" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="Compiler" />
-    <module name="myfun-language" />
-    <method v="2">
-      <option name="Make" enabled="true" />
-    </method>
-  </configuration>
-</component>
