@@ -1,5 +1,5 @@
 # Struttura del progetto
-All'interno del progeto vi sono diverse directory:
+All'interno della repository vi sono diverse directory:
 - **hand-coded-lexer**: contine il progetto relativo al primo assignment del corso, ovvero produrre un lexer a mano. L'esercitazione si basava sul simulare un NFA tramite l'utilizzo del costrutto switch;
 - **jflex-coded-lexer**: contiene il progetto relativo al secondo assignment del corso, ovvero riprodurre l'esercitazione uno tramite l'utilizzo del tool JFlex;
 - **hand-coded-parser**: contiene il progetto relativo al terzo assignment del corso, ovvero produrre un parser a mano. L'esercitazione si basava sulla produzione di una funzione booleane per ogni non terminale, producendo in questo modo un parser a discesa ricorsiva;
